@@ -8,12 +8,14 @@ use InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Radiergummi\Wander\Http\Authorization;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Interfaces\BodyInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
 use UnEncodedBody;
 
+use function base64_encode;
 use function http_build_query;
 use function parse_str;
 
@@ -348,6 +350,62 @@ class Context
     public function getHeaderLine(string $name): string
     {
         return $this->request->getHeaderLine($name);
+    }
+
+    /**
+     * Shorthand method to set the Authorization header. While its technically rather
+     * "withAuthentication", I've decided to go with the way the header is named.
+     *
+     * @param string $type
+     * @param string $credentials
+     *
+     * @psam-param Authorization::* $type
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function withAuthorization(string $type, string $credentials): self
+    {
+        return $this->withHeader(
+            Header::AUTHORIZATION,
+            "{$type} {$credentials}"
+        );
+    }
+
+    /**
+     * Shorthand method to set basic authentication
+     *
+     * @param string      $username
+     * @param string|null $password
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function withBasicAuthorization(
+        string $username,
+        ?string $password
+    ): self {
+        return $this->withAuthorization(
+            Authorization::BASIC,
+            base64_encode("{$username}:{$password}")
+        );
+    }
+
+    /**
+     * Shorthand method to set bearer authentication
+     *
+     * @param string $token
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function withBearerAuthorization(
+        string $token
+    ): Context {
+        return $this->withAuthorization(
+            Authorization::BEARER,
+            $token
+        );
     }
 
     /**
