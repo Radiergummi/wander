@@ -1,0 +1,32 @@
+{
+    "name": "radiergummi/wander",
+    "description": "A PHP client for the modern world",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Moritz Friedrich",
+            "email": "m@9dev.de"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Radiergummi\\Wander\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Radiergummi\\Wander\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "nyholm/psr7": "^1.3",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-message": "^1.0"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
