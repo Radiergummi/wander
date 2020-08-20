@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Radiergummi\Wander\Interfaces;
 
 use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\ResponseInterface;
 
 interface DriverInterface extends ClientInterface
 {
@@ -19,9 +17,4 @@ interface DriverInterface extends ClientInterface
     public function setResponseFactory(
         ResponseFactoryInterface $responseFactory
     ): void;
-
-    /**
-     * @inheritDoc
-     */
-    public function sendRequest(RequestInterface $request): ResponseInterface;
 }

@@ -8,17 +8,15 @@ use InvalidArgumentException;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Radiergummi\Wander\Exceptions\ClientException;
 use Radiergummi\Wander\Exceptions\ConnectionException;
-use Radiergummi\Wander\Exceptions\ResponseErrorException;
 use Radiergummi\Wander\Exceptions\SslCertificateException;
 use Radiergummi\Wander\Exceptions\UnresolvableHostException;
-use Radiergummi\Wander\Exceptions\WanderException;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
 use RuntimeException;
 
-use function array_key_exists;
 use function count;
 use function curl_close;
 use function curl_errno;
@@ -126,7 +124,7 @@ class CurlDriver extends AbstractDriver
                  */
                 $request = $request->withHeader(
                     Header::CONTENT_LENGTH,
-                    $bodyLength
+                    (string)$bodyLength
                 );
             }
         }
@@ -172,14 +170,30 @@ class CurlDriver extends AbstractDriver
         // Make sure curl keeps the response body
         $options[CURLOPT_RETURNTRANSFER] = false;
 
-        // Holds all response headers
+        /**
+         * Holds all response headers
+         *
+         * @var string[][]
+         */
         $responseHeaders = [];
 
-        // The header function is run by curl to process the response headers
+        /**
+         * The header function is run by curl to process the response headers
+         *
+         * @param resource $handle
+         * @param string   $header
+         *
+         * @return int
+         * @psalm-suppress MissingClosureParamType Because of a psalm bug I already
+         *                                         filed an issue for
+         * @see            https://github.com/vimeo/psalm/issues/4033
+         */
         $options[CURLOPT_HEADERFUNCTION] = static function (
             $handle,
             string $header
         ) use (&$responseHeaders): int {
+            /** @var array<string,string[]> $responseHeaders */
+
             $length = strlen($header);
             $parts = explode(':', $header, 2);
 
@@ -189,16 +203,26 @@ class CurlDriver extends AbstractDriver
 
             $name = strtolower(trim($parts[0]));
 
-            if (! array_key_exists($name, $responseHeaders)) {
-                $responseHeaders[$name] = [trim($parts[1])];
-            } else {
-                $responseHeaders[$name][] = trim($parts[1]);
+            if (! isset($responseHeaders[$name])) {
+                $responseHeaders[$name] = [];
             }
+
+            $responseHeaders[$name][] = trim($parts[1]);
 
             return $length;
         };
 
         $sink = Stream::create();
+
+        /**
+         * @param resource $handle
+         * @param string   $chunk
+         *
+         * @return int
+         * @psalm-suppress MissingClosureParamType Because of a psalm bug I already
+         *                                         filed an issue for
+         * @see            https://github.com/vimeo/psalm/issues/4033
+         */
         $options[CURLOPT_WRITEFUNCTION] = fn(
             $handle,
             string $chunk
@@ -215,7 +239,7 @@ class CurlDriver extends AbstractDriver
 
         // Retrieve the status code
         $statusCode = (int)curl_getinfo($handle, CURLINFO_HTTP_CODE);
-        $protocolVersion = curl_getinfo($handle, CURLINFO_HTTP_VERSION);
+        $protocolVersion = (string)curl_getinfo($handle, CURLINFO_HTTP_VERSION);
 
         // Create a response instance
         $response = $this
@@ -231,20 +255,10 @@ class CurlDriver extends AbstractDriver
 
         // Retrieve any eventual error code
         $errorCode = curl_errno($handle);
-        $errorMessage = curl_error($handle) ?? 'none';
+        $errorMessage = curl_error($handle) ?: 'none';
 
         // Close the request
         curl_close($handle);
-
-        // If the status code is from the error ranges, we throw to indicate the
-        // request has failed. As the exception contains the response instance, users
-        // get to work with the response if they are inclined to.
-        if (Status::isError($statusCode)) {
-            throw new ResponseErrorException(
-                $request,
-                $response
-            );
-        }
 
         switch ($errorCode) {
             // If the curl error code is 0 and the status does not indicate a server
@@ -266,6 +280,7 @@ class CurlDriver extends AbstractDriver
             case CURLE_READ_ERROR:
             case CURLE_RECV_ERROR:
                 throw new ConnectionException(
+                    $request,
                     $errorMessage,
                     $errorCode
                 );
@@ -278,9 +293,10 @@ class CurlDriver extends AbstractDriver
             case CURLE_SSL_CIPHER:
             case CURLE_SSL_ENGINE_NOTFOUND:
             case CURLE_SSL_ENGINE_SETFAILED:
-            case CURLE_SSL_PEER_CERTIFICATE:
             case CURLE_SSL_PINNEDPUBKEYNOTMATCH:
+            case CURLE_SSL_PEER_CERTIFICATE:
                 throw new SslCertificateException(
+                    $request,
                     $errorMessage,
                     $errorCode
                 );
@@ -294,11 +310,11 @@ class CurlDriver extends AbstractDriver
                     $errorMessage
                 );
 
-                throw new WanderException($message, $errorCode);
+                throw new ClientException($message, $errorCode);
         }
     }
 
-    protected function getDefaultOptions(): array
+    protected function getDefaultOptions(): ?array
     {
         return $this->defaultOptions;
     }

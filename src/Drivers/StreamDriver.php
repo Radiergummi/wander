@@ -53,7 +53,7 @@ class StreamDriver extends AbstractDriver
                  */
                 $request = $request->withHeader(
                     Header::CONTENT_LENGTH,
-                    $bodyLength
+                    (string)$bodyLength
                 );
             }
         }
@@ -74,11 +74,17 @@ class StreamDriver extends AbstractDriver
         // Rewind the stream, so we get access to it
         $sink->rewind();
 
-        // `$http_response_header` is a magic variable, created after performing a
-        // stream request. It contains the full header section, including the status
-        // line, which we shift off here so the rest of the array will be the raw
-        // response headers only.
-        $statusLine = array_shift($http_response_header);
+        /**
+         * `$http_response_header` is a magic variable, created after performing a
+         * stream request. It contains the full header section, including the status
+         * line, which we shift off here so the rest of the array will be the raw
+         * response headers only.
+         *
+         * @var array<array-key, string>
+         */
+        $responseHeaders = $http_response_header;
+
+        $statusLine = array_shift($responseHeaders);
 
         preg_match(
             '{HTTP/([\d.]+)\S*\s(\d{3})\s(.+)}',
@@ -96,8 +102,8 @@ class StreamDriver extends AbstractDriver
             ->withBody($sink);
 
         // Set all response headers
-        foreach ($http_response_header as $headerLine) {
-            [$name, $value] = explode(':', $headerLine);
+        foreach ($responseHeaders as $headerLine) {
+            [$name, $value] = explode(':', (string)$headerLine);
 
             $response = $response->withHeader($name, trim($value));
         }

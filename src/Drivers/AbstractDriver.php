@@ -15,9 +15,9 @@ abstract class AbstractDriver implements DriverInterface
     /**
      * Transforms request headers into a format usable by curl
      *
-     * @param array $headers
+     * @param string[][] $headers
      *
-     * @return array
+     * @return string[]
      */
     protected static function marshalHeaders(array $headers): array
     {

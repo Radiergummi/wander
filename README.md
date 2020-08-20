@@ -86,10 +86,17 @@ $response = $client->request($request);
 
 ### Using a custom driver
 Drivers are what actually handles dispatching requests and processing responses. They have one, simple responsibility: Transform a request instance into a response
-instance. By default, Wander uses a PHP stream driver
+instance. By default, Wander uses a PHP stream driver.
 
 Reference
 ---------
 This reference shows all available methods.
 
 > (TBD)
+
+Contributing
+------------
+All contributions are welcome, but please be aware of a few requirements:
+ - We use [psalm](https://psalm.dev/) for static analysis and would like to keep the level at _at least_ 2 (but would like to reach 1 in the long run). Any PR with
+   degraded analysis results will not be accepted. To run psalm, use `composer run static-analysis`.
+ - Unit and integration tests must be supplied with every PR. To run all test suites, use `composer run test`.

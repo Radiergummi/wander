@@ -11,7 +11,9 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Radiergummi\Wander\Drivers\StreamDriver;
+use Radiergummi\Wander\Exceptions\ResponseErrorException;
 use Radiergummi\Wander\Http\Method;
+use Radiergummi\Wander\Http\Status;
 use Radiergummi\Wander\Interfaces\DriverInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
 
@@ -45,26 +47,62 @@ class Wander implements HttpClientInterface
         $this->driver->setResponseFactory($this->responseFactory);
     }
 
+    /**
+     * Shorthand to create a GET request
+     *
+     * @param UriInterface|string $uri
+     *
+     * @return Context
+     */
     public function get($uri): Context
     {
         return $this->createContext(Method::GET, $uri);
     }
 
+    /**
+     * Shorthand to create a HEAD request
+     *
+     * @param UriInterface|string $uri
+     *
+     * @return Context
+     */
     public function head($uri): Context
     {
         return $this->createContext(Method::HEAD, $uri);
     }
 
+    /**
+     * Shorthand to create a DELETE request
+     *
+     * @param UriInterface|string $uri
+     *
+     * @return Context
+     */
     public function options($uri): Context
     {
         return $this->createContext(Method::OPTIONS, $uri);
     }
 
+    /**
+     * Shorthand to create a DELETE request
+     *
+     * @param UriInterface|string $uri
+     *
+     * @return Context
+     */
     public function delete($uri): Context
     {
         return $this->createContext(Method::DELETE, $uri);
     }
 
+    /**
+     * Shorthand to create a POST request
+     *
+     * @param UriInterface|string $uri
+     * @param mixed|null          $body
+     *
+     * @return Context
+     */
     public function post($uri, $body = null): Context
     {
         $context = $this->createContext(Method::POST, $uri);
@@ -76,6 +114,14 @@ class Wander implements HttpClientInterface
         return $context;
     }
 
+    /**
+     * Shorthand to create a PUT request
+     *
+     * @param UriInterface|string $uri
+     * @param mixed|null          $body
+     *
+     * @return Context
+     */
     public function put($uri, $body = null): Context
     {
         $context = $this->createContext(Method::PUT, $uri);
@@ -87,6 +133,14 @@ class Wander implements HttpClientInterface
         return $context;
     }
 
+    /**
+     * Shorthand to create a PATCH request
+     *
+     * @param UriInterface|string $uri
+     * @param mixed|null          $body
+     *
+     * @return Context
+     */
     public function patch($uri, $body = null): Context
     {
         $context = $this->createContext(Method::PATCH, $uri);
@@ -130,6 +184,12 @@ class Wander implements HttpClientInterface
      */
     public function request(RequestInterface $request): ResponseInterface
     {
-        return $this->driver->sendRequest($request);
+        $response = $this->driver->sendRequest($request);
+
+        if (Status::isError($response->getStatusCode())) {
+            throw new ResponseErrorException($request, $response);
+        }
+
+        return $response;
     }
 }

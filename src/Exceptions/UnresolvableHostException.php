@@ -15,7 +15,7 @@ class UnresolvableHostException extends WanderException
 
         parent::__construct(
             "Could not resolve host {$hostname}",
-            null,
+            0,
             $previous
         );
     }

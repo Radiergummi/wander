@@ -7,9 +7,7 @@ use Radiergummi\Wander\Interfaces\BodyInterface;
 class UnEncodedBody implements BodyInterface
 {
     /**
-     * UnEncodedBody constructor.
-     *
-     * @param $data
+     * @param mixed $data
      */
     public function __construct($data)
     {

@@ -11,14 +11,13 @@ use Psr\Http\Message\UriInterface;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Interfaces\BodyInterface;
-use Radiergummi\Wander\Interfaces\ContextInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
 use UnEncodedBody;
 
 use function http_build_query;
 use function parse_str;
 
-class Context implements ContextInterface
+class Context
 {
     protected HttpClientInterface $client;
 
@@ -49,7 +48,9 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves the current request instance
+     *
+     * @return RequestInterface
      */
     public function getRequest(): RequestInterface
     {
@@ -57,7 +58,12 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Sets the HTTP request method
+     *
+     * @param string $method
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function withMethod(string $method): self
     {
@@ -67,7 +73,9 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves the HTTP request method
+     *
+     * @return string
      */
     public function getMethod(): string
     {
@@ -75,7 +83,12 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Sets the request URI
+     *
+     * @param UriInterface $uri
+     * @param bool         $preserveHost
+     *
+     * @return $this
      */
     public function withUri(UriInterface $uri, bool $preserveHost = false): self
     {
@@ -88,7 +101,9 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves the request URI
+     *
+     * @return UriInterface
      */
     public function getUri(): UriInterface
     {
@@ -96,7 +111,12 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Sets the query string
+     *
+     * @param string $queryString
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function withQueryString(string $queryString): self
     {
@@ -106,7 +126,9 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves the query string
+     *
+     * @return string
      */
     public function getQueryString(): string
     {
@@ -114,7 +136,12 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Sets all query parameters on the request URI
+     *
+     * @param array<array-key, string|int|float|bool|null> $queryParameters
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function withQueryParameters(array $queryParameters): self
     {
@@ -124,7 +151,9 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves all query parameters
+     *
+     * @return array<array-key, string|int|float|bool|null>
      */
     public function getQueryParameters(): array
     {
@@ -134,7 +163,13 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Sets a single query parameter
+     *
+     * @param string                     $name
+     * @param string|int|float|bool|null $value
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function withQueryParameter(string $name, $value): self
     {
@@ -148,7 +183,12 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Removes a single query parameter
+     *
+     * @param string $name
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function withoutQueryParameter(string $name): self
     {
@@ -160,7 +200,12 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves a single query parameter by name
+     *
+     * @param string $name Name of the parameter to retrieve
+     *
+     * @return string|int|float|bool|null Value of the parameter if it is set, `NULL`
+     *                                    otherwise
      */
     public function getQueryParameter(string $name)
     {
@@ -170,7 +215,15 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Sets multiple headers at once.
+     *
+     * @param array<string, string> $headers Headers as a dictionary of header names
+     *                                       to values
+     * @param bool                  $append  Whether to append values to pre-existing
+     *                                       headers
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function withHeaders(array $headers, bool $append = false): self
     {
@@ -182,7 +235,29 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves all message header values.
+     *
+     * The keys represent the header name as it will be sent over the wire, and
+     * each value is an array of strings associated with the header.
+     *
+     *     // Represent the headers as a string
+     *     foreach ($message->getHeaders() as $name => $values) {
+     *         echo $name . ": " . implode(", ", $values);
+     *     }
+     *
+     *     // Emit headers iteratively:
+     *     foreach ($message->getHeaders() as $name => $values) {
+     *         foreach ($values as $value) {
+     *             header(sprintf('%s: %s', $name, $value), false);
+     *         }
+     *     }
+     *
+     * While header names are not case-sensitive, getHeaders() will preserve the
+     * exact case in which headers were originally specified.
+     *
+     * @return string[][] Returns an associative array of the message's headers. Each
+     *                    key MUST be a header name, and each value MUST be an array
+     *                    of strings for that header.
      */
     public function getHeaders(): array
     {
@@ -190,7 +265,20 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * If `append` is `TRUE`, the provided value will replace the specified header if
+     * it already exists. Otherwise, existing values for the specified header will be
+     * maintained. The new value(s) will be appended to the existing list. If the
+     * header did not exist previously, it will be added.
+     *
+     * While header names are case-insensitive, the casing of the header will
+     * be preserved by this function, and returned from getHeaders().
+     *
+     * @param string $name   Case-insensitive name of the header
+     * @param string $value  Header value
+     * @param bool   $append Whether to append values to pre-existing headers
+     *
+     * @return $this
+     * @throws InvalidArgumentException For invalid header names or values.
      */
     public function withHeader(
         string $name,
@@ -205,7 +293,11 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Removes the specified header.
+     *
+     * @param string $name Case-insensitive header field name to remove.
+     *
+     * @return $this
      */
     public function withoutHeader(string $name): self
     {
@@ -215,7 +307,19 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves a message header value by the given case-insensitive name.
+     *
+     * This method returns an array of all the header values of the given
+     * case-insensitive header name.
+     *
+     * If the header does not appear in the message, this method MUST return an
+     * empty array.
+     *
+     * @param string $name Case-insensitive header field name.
+     *
+     * @return string[] An array of string values as provided for the given header.
+     *                  If the header does not appear in the message, this method
+     *                  MUST return an empty array.
      */
     public function getHeader(string $name): array
     {
@@ -223,7 +327,23 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves a comma-separated string of the values for a single header.
+     *
+     * This method returns all of the header values of the given case-insensitive
+     * header name as a string concatenated together using a comma.
+     *
+     * NOTE: Not all header values may be appropriately represented using comma
+     * concatenation. For such headers, use getHeader() instead and supply your own
+     * delimiter when concatenating.
+     *
+     * If the header does not appear in the message, this method MUST return an
+     * empty string.
+     *
+     * @param string $name Case-insensitive header field name.
+     *
+     * @return string A string of values as provided for the given header
+     *                concatenated together using a comma. If the header does not
+     *                appear in the message, this method MUST return an empty string.
      */
     public function getHeaderLine(string $name): string
     {
@@ -231,7 +351,13 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Shorthand method to set the Content-Type header. The content type also affects
+     * body serialization.
+     *
+     * @param string $contentType
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function withContentType(string $contentType): self
     {
@@ -239,7 +365,10 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Shorthand method to set the Content-Type header to application/json
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function asJson(): self
     {
@@ -250,7 +379,10 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Shorthand method to set the Content-Type header to text/xml
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function asXml(): self
     {
@@ -261,7 +393,10 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Shorthand method to set the Content-Type header to text/plain
+     *
+     * @return $this
+     * @throws InvalidArgumentException
      */
     public function asPlainText(): self
     {
@@ -272,7 +407,13 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Sets the request body. Data may be passed with any type, as serialization
+     * happens just before actually dispatching the request. This allows to set the
+     * content encoding separately or re-define it conditionally.
+     *
+     * @param mixed $body
+     *
+     * @return $this
      */
     public function withBody($body): self
     {
@@ -295,7 +436,9 @@ class Context implements ContextInterface
     }
 
     /**
-     * @inheritDoc
+     * Retrieves the body instance
+     *
+     * @return BodyInterface|null
      */
     public function getBody(): ?BodyInterface
     {
@@ -303,11 +446,14 @@ class Context implements ContextInterface
     }
 
     /**
-     * Runs the request. This is actually a shorthand that passes the request
-     * instance to the client.
+     * Runs the underlying request.
      *
      * @return ResponseInterface
-     * @throws InvalidArgumentException
+     * @throws Exceptions\ConnectionException
+     * @throws Exceptions\ResponseErrorException
+     * @throws Exceptions\SslCertificateException
+     * @throws Exceptions\UnresolvableHostException
+     * @throws Exceptions\WanderException
      */
     public function run(): ResponseInterface
     {
@@ -319,7 +465,7 @@ class Context implements ContextInterface
     /**
      * Encodes an associative array of query parameters into a query string
      *
-     * @param array<string, mixed> $queryParameters Query parameters as a dictionary
+     * @param array<array-key, mixed> $queryParameters Query parameters as a dictionary
      *
      * @return string Query string
      */
@@ -333,7 +479,11 @@ class Context implements ContextInterface
      *
      * @param string $queryString Query string
      *
-     * @return array<string, string> Query parameters as a dictionary
+     * @return array<array-key, string|int|float|bool|null> Query parameters as a
+     *                                                      dictionary
+     *
+     * @psalm-suppress MixedReturnTypeCoercion Because psalm is wrong here. parse_str
+     *                                         can only infer scalar types.
      */
     private function decodeQueryParameters(string $queryString): array
     {

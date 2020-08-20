@@ -2,16 +2,34 @@
 
 namespace Radiergummi\Wander\Exceptions;
 
+use Psr\Http\Client\NetworkExceptionInterface;
+use Psr\Http\Message\RequestInterface;
 use Throwable;
 
-class ConnectionException extends WanderException
+class ConnectionException extends WanderException implements NetworkExceptionInterface
 {
-    public function __construct($message = '', $code = 0, Throwable $previous = null)
-    {
+    protected RequestInterface $request;
+
+    public function __construct(
+        RequestInterface $request,
+        string $message = '',
+        int $code = 0,
+        ?Throwable $previous = null
+    ) {
+        $this->request = $request;
+
         parent::__construct(
             "Unable to connect to remote server: {$message}",
             $code,
             $previous
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRequest(): RequestInterface
+    {
+        return $this->request;
     }
 }

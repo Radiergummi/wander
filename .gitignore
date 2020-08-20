@@ -1,2 +1,11 @@
+# IDE configuration files
 .idea/
+
+# Composer dependencies
 vendor/
+
+# Test tool output
+reports/
+
+# PHPUnit fragment
+.phpunit.result.cache
