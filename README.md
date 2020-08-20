@@ -18,6 +18,20 @@ configuration, lots of overhead, or missing PSR compatibility. Wander solves all
  - **Compatible with other solutions**  
    As drivers are, essentially, PSR-18 clients, you can swap in any other client library and make it work out of the box. This provides for a smooth migration path.
 
+```php
+$responseBody = (new Wander())
+    ->patch('https://example.com')
+    ->withQueryParameter('foo', 'bar')
+    ->withAuthorization('Bearer', getenv('TOKEN'))
+    ->withHeaders([
+        Header::ACCEPT => MediaType::APPLICATION_JSON,
+    ])
+    ->withoutHeader(Header::USER_AGENT)
+    ->run()
+    ->getBody()
+    ->getContents();
+```
+
 Installation
 ------------
 Install using composer:
