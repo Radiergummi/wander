@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Radiergummi\Wander\Body;
+
 use Radiergummi\Wander\Interfaces\BodyInterface;
 
 class UnEncodedBody implements BodyInterface

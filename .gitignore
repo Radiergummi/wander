@@ -1,5 +1,6 @@
 # IDE configuration files
 .idea/
+.vscode/
 
 # Composer dependencies
 vendor/

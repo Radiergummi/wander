@@ -8,12 +8,12 @@ use InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Radiergummi\Wander\Body\UnEncodedBody;
 use Radiergummi\Wander\Http\Authorization;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Interfaces\BodyInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
-use UnEncodedBody;
 
 use function base64_encode;
 use function http_build_query;
@@ -484,7 +484,7 @@ class Context
 
         // If the passed body is not a body instance yet, we store it as a temporary
         // unencoded body. That allows us to define the content encoding later on.
-        if (! ($body instanceof BodyInterface)) {
+        if (!($body instanceof BodyInterface)) {
             $body = new UnEncodedBody($body);
         }
 
@@ -501,6 +501,16 @@ class Context
     public function getBody(): ?BodyInterface
     {
         return $this->body;
+    }
+
+    /**
+     * Checks whether a body is set
+     *
+     * @return bool
+     */
+    public function hasBody(): bool
+    {
+        return (bool)$this->body;
     }
 
     /**

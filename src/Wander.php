@@ -40,11 +40,43 @@ class Wander implements HttpClientInterface
         ?ResponseFactoryInterface $responseFactory = null
     ) {
         $psr17Factory = new Psr17Factory();
-        $this->requestFactory = $requestFactory ?? $psr17Factory;
-        $this->responseFactory = $responseFactory ?? $psr17Factory;
 
-        $this->driver = $driver ?? new StreamDriver();
-        $this->driver->setResponseFactory($this->responseFactory);
+        $this->setRequestFactory($requestFactory ?? $psr17Factory);
+        $this->setResponseFactory($responseFactory ?? $psr17Factory);
+        $this->setDriver($driver ?? new StreamDriver());
+    }
+
+    public function setDriver(DriverInterface $driver): void
+    {
+        $this->driver = $driver;
+        $this->driver->setResponseFactory(
+            $this->responseFactory
+        );
+    }
+
+    public function getDriver(): DriverInterface
+    {
+        return $this->driver;
+    }
+
+    public function setRequestFactory(RequestFactoryInterface $requestFactory): void
+    {
+        $this->requestFactory = $requestFactory;
+    }
+
+    public function getRequestFactory(): RequestFactoryInterface
+    {
+        return $this->requestFactory;
+    }
+
+    public function setResponseFactory(ResponseFactoryInterface $responseFactory): void
+    {
+        $this->responseFactory = $responseFactory;
+    }
+
+    public function getResponseFactory(): ResponseFactoryInterface
+    {
+        return $this->responseFactory;
     }
 
     /**
