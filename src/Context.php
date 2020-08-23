@@ -155,7 +155,7 @@ class Context
     /**
      * Retrieves all query parameters
      *
-     * @return array<array-key, string|int|float|bool|null>
+     * @return array<array-key, string>
      */
     public function getQueryParameters(): array
     {
@@ -206,10 +206,10 @@ class Context
      *
      * @param string $name Name of the parameter to retrieve
      *
-     * @return string|int|float|bool|null Value of the parameter if it is set, `NULL`
-     *                                    otherwise
+     * @return string|null Value of the parameter if it is set, `NULL`
+     *                     otherwise
      */
-    public function getQueryParameter(string $name)
+    public function getQueryParameter(string $name): ?string
     {
         $queryParameters = $this->getQueryParameters();
 
@@ -275,16 +275,16 @@ class Context
      * While header names are case-insensitive, the casing of the header will
      * be preserved by this function, and returned from getHeaders().
      *
-     * @param string $name   Case-insensitive name of the header
-     * @param string $value  Header value
-     * @param bool   $append Whether to append values to pre-existing headers
+     * @param string          $name   Case-insensitive name of the header
+     * @param string|string[] $value  Header value
+     * @param bool            $append Whether to append values to pre-existing headers
      *
      * @return $this
      * @throws InvalidArgumentException For invalid header names or values.
      */
     public function withHeader(
         string $name,
-        string $value,
+        $value,
         bool $append = false
     ): self {
         $this->request = $append
@@ -547,8 +547,8 @@ class Context
      *
      * @param string $queryString Query string
      *
-     * @return array<array-key, string|int|float|bool|null> Query parameters as a
-     *                                                      dictionary
+     * @return array<array-key, string> Query parameters as a
+     *                                  dictionary
      *
      * @psalm-suppress MixedReturnTypeCoercion Because psalm is wrong here. parse_str
      *                                         can only infer scalar types.
