@@ -112,7 +112,7 @@ class CurlDriver extends AbstractDriver
             $options[CURLOPT_UPLOAD] = true;
 
             // Set the Content-Length header, unless already configured
-            if (! $request->hasHeader(Header::CONTENT_LENGTH)) {
+            if (!$request->hasHeader(Header::CONTENT_LENGTH)) {
                 /**
                  * This is necessary due to PHPStorm detecting--correctly so--that
                  * the helper methods return a MessageInterface instance. I would
@@ -138,18 +138,18 @@ class CurlDriver extends AbstractDriver
                 $options[CURLOPT_POST] = true;
                 break;
 
-            /**
-             * Theoretically, curl supports a PUT option (CURLOPT_PUT) for PUT
-             * requests. The way its implemented, though, is incompatible with most
-             * web servers: It sends an `Expect: 100 Continue` header before actually
-             * submitting the request. To prevent this problem, PUT has been added to
-             * the custom request block below, which works just fine.
-             */
-            // case Method::PUT:
-            //     $options[CURLOPT_PUT] = true;
-            //     break;
+                /**
+                 * Theoretically, curl supports a PUT option (CURLOPT_PUT) for PUT
+                 * requests. The way its implemented, though, is incompatible with most
+                 * web servers: It sends an `Expect: 100 Continue` header before actually
+                 * submitting the request. To prevent this problem, PUT has been added to
+                 * the custom request block below, which works just fine.
+                 */
+                // case Method::PUT:
+                //     $options[CURLOPT_PUT] = true;
+                //     break;
 
-            // All other methods must use CURLOPT_CUSTOMREQUEST
+                // All other methods must use CURLOPT_CUSTOMREQUEST
             case Method::PUT:
             case Method::HEAD:
             case Method::DELETE:
@@ -170,63 +170,51 @@ class CurlDriver extends AbstractDriver
         // Make sure curl keeps the response body
         $options[CURLOPT_RETURNTRANSFER] = false;
 
-        /**
-         * Holds all response headers
-         *
-         * @var string[][]
-         */
         $responseHeaders = [];
 
-        /**
-         * The header function is run by curl to process the response headers
-         *
-         * @param resource $handle
-         * @param string   $header
-         *
-         * @return int
-         * @psalm-suppress MissingClosureParamType Because of a psalm bug I already
-         *                                         filed an issue for
-         * @see            https://github.com/vimeo/psalm/issues/4033
-         */
-        $options[CURLOPT_HEADERFUNCTION] = static function (
-            $handle,
-            string $header
-        ) use (&$responseHeaders): int {
-            /** @var array<string,string[]> $responseHeaders */
+        $options[CURLOPT_HEADERFUNCTION] =
 
-            $length = strlen($header);
-            $parts = explode(':', $header, 2);
+            /**
+             * The header function is run by curl to process the response headers
+             *
+             * @param resource $handle
+             * @param string   $header
+             *
+             * @return int
+             * @see https://github.com/vimeo/psalm/issues/4033
+             */
+            static function ($handle, string $header) use (&$responseHeaders): int {
+                /** @var array<string,string[]> $responseHeaders */
 
-            if (count($parts) < 2) {
+                $length = strlen($header);
+                $parts = explode(':', $header, 2);
+
+                if (count($parts) < 2) {
+                    return $length;
+                }
+
+                $name = strtolower(trim($parts[0]));
+
+                if (!isset($responseHeaders[$name])) {
+                    $responseHeaders[$name] = [];
+                }
+
+                $responseHeaders[$name][] = trim($parts[1]);
+
                 return $length;
-            }
-
-            $name = strtolower(trim($parts[0]));
-
-            if (! isset($responseHeaders[$name])) {
-                $responseHeaders[$name] = [];
-            }
-
-            $responseHeaders[$name][] = trim($parts[1]);
-
-            return $length;
-        };
+            };
 
         $sink = Stream::create();
 
-        /**
-         * @param resource $handle
-         * @param string   $chunk
-         *
-         * @return int
-         * @psalm-suppress MissingClosureParamType Because of a psalm bug I already
-         *                                         filed an issue for
-         * @see            https://github.com/vimeo/psalm/issues/4033
-         */
-        $options[CURLOPT_WRITEFUNCTION] = fn(
-            $handle,
-            string $chunk
-        ): int => $sink->write($chunk);
+        $options[CURLOPT_WRITEFUNCTION] =
+            /**
+             * @param resource $handle
+             * @param string   $chunk
+             *
+             * @return int
+             * @see https://github.com/vimeo/psalm/issues/4033
+             */
+            fn ($handle, string $chunk): int => $sink->write($chunk);
 
         // Apply all curl options
         curl_setopt_array($handle, $options);
@@ -249,8 +237,9 @@ class CurlDriver extends AbstractDriver
             ->withBody($sink);
 
         // Set all response headers
-        foreach ($responseHeaders as $name => $value) {
-            $response = $response->withHeader($name, $value);
+        /** @var array<string,string[]> $responseHeaders */
+        foreach ($responseHeaders as $name => $values) {
+            $response = $response->withHeader($name, $values);
         }
 
         // Retrieve any eventual error code
@@ -261,18 +250,18 @@ class CurlDriver extends AbstractDriver
         curl_close($handle);
 
         switch ($errorCode) {
-            // If the curl error code is 0 and the status does not indicate a server
-            // error, we're done
+                // If the curl error code is 0 and the status does not indicate a server
+                // error, we're done
             case 0:
                 return $response;
 
-            // DNS resolution problems can indicate several specific issues, so
-            // they have their own exception class
+                // DNS resolution problems can indicate several specific issues, so
+                // they have their own exception class
             case CURLE_COULDNT_RESOLVE_HOST:
                 throw new UnresolvableHostException($request->getUri());
 
-            // This group is for all connection errors, happening before we even
-            // receive an HTTP response from the server.
+                // This group is for all connection errors, happening before we even
+                // receive an HTTP response from the server.
             case CURLE_COULDNT_CONNECT:
             case CURLE_TOO_MANY_REDIRECTS:
             case CURLE_GOT_NOTHING:
@@ -285,7 +274,7 @@ class CurlDriver extends AbstractDriver
                     $errorCode
                 );
 
-            // This group is for all HTTPS errors relating to SSL certificates.
+                // This group is for all HTTPS errors relating to SSL certificates.
             case CURLE_SSL_CONNECT_ERROR:
             case CURLE_SSL_CACERT:
             case CURLE_SSL_CACERT_BADFILE:
@@ -301,8 +290,8 @@ class CurlDriver extends AbstractDriver
                     $errorCode
                 );
 
-            // We were unable to determine the exact error, so we'll throw a generic
-            // client error. This should probably not happen.
+                // We were unable to determine the exact error, so we'll throw a generic
+                // client error. This should probably not happen.
             default:
                 $message = sprintf(
                     "Request failed: Unknown curl error %d: %s",

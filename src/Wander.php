@@ -32,7 +32,7 @@ class Wander implements HttpClientInterface
 
     protected RequestFactoryInterface $requestFactory;
 
-    protected ?ResponseFactoryInterface $responseFactory;
+    protected ResponseFactoryInterface $responseFactory;
 
     public function __construct(
         ?DriverInterface $driver = null,
