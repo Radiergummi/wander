@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Radiergummi\Wander\Interfaces;
 
+use Radiergummi\Wander\Exceptions\DriverException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 
