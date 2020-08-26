@@ -241,7 +241,7 @@ class CurlDriver extends AbstractDriver
         // Retrieve the protocol version if possible. This constant was added
         // only in curl 7.5.0, which is fairly new even for this library
         $protocolVersion = defined('CURLINFO_HTTP_VERSION')
-            ? (string)curl_getinfo($handle, constant('CURLINFO_HTTP_VERSION'))
+            ? (string)curl_getinfo($handle, (int)constant('CURLINFO_HTTP_VERSION'))
             : '1.1';
 
         // Create a response instance
