@@ -49,7 +49,6 @@ use const CURLE_SSL_PEER_CERTIFICATE;
 use const CURLE_SSL_PINNEDPUBKEYNOTMATCH;
 use const CURLE_TOO_MANY_REDIRECTS;
 use const CURLINFO_HTTP_CODE;
-use const CURLINFO_HTTP_VERSION;
 use const CURLOPT_CUSTOMREQUEST;
 use const CURLOPT_FAILONERROR;
 use const CURLOPT_HEADERFUNCTION;
@@ -238,7 +237,12 @@ class CurlDriver extends AbstractDriver
 
         // Retrieve the status code
         $statusCode = (int)curl_getinfo($handle, CURLINFO_HTTP_CODE);
-        $protocolVersion = (string)curl_getinfo($handle, CURLINFO_HTTP_VERSION);
+
+        // Retrieve the protocol version if possible. This constant was added
+        // only in curl 7.5.0, which is fairly new even for this library
+        $protocolVersion = defined('CURLINFO_HTTP_VERSION')
+            ? (string)curl_getinfo($handle, constant('CURLINFO_HTTP_VERSION'))
+            : '1.1';
 
         // Create a response instance
         $response = $this
