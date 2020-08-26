@@ -103,46 +103,46 @@ HTTP, where an error be an expected part of the flow.
 The exception tree looks as follows:
 ```
  WanderException (inherits from \RuntimeException)
-  ┣━ ClientException (implements PSR-18 ClientExceptionInterface)
-  ┣━ DriverException (implements PSR-18 RequestExceptionInterface)
-  ┣━ ConnectionException (implements PSR-18 NetworkExceptionInterface)
-  ┣━ SslCertificateException (implements PSR-18 NetworkExceptionInterface)
-  ┣━ UnresolvableHostException (implements PSR-18 NetworkExceptionInterface)
-  ┗━ ResponseErrorException
-       ┣━ ClientErrorException
-       ┃   ┣━ BadRequestException
-       ┃   ┣━ UnauthorizedException
-       ┃   ┣━ PaymentRequiredException
-       ┃   ┣━ ForbiddenException
-       ┃   ┣━ NotFoundException
-       ┃   ┣━ MethodNotAllowedException
-       ┃   ┣━ NotAcceptableException
-       ┃   ┣━ ProxyAuthenticationRequiredException
-       ┃   ┣━ RequestTimeoutException
-       ┃   ┣━ ConflictException
-       ┃   ┣━ GoneException
-       ┃   ┣━ LengthRequiredException
-       ┃   ┣━ PreconditionFailedException
-       ┃   ┣━ PayloadTooLargeException
-       ┃   ┣━ UriTooLongException
-       ┃   ┣━ UnsupportedMediaTypeException
-       ┃   ┣━ RequestedRangeNotSatisfyableException
-       ┃   ┣━ ExpectationFailedException
-       ┃   ┣━ MisdirectedRequestException
-       ┃   ┣━ UpgradeRequiredException
-       ┃   ┣━ PreconditionRequiredException
-       ┃   ┣━ TooManyRequestsException
-       ┃   ┣━ RequestHeaderFieldsTooLargeException
-       ┃   ┗━ UnavailableForLegalReasonsException
-       ┗━ ServerErrorException
-            ┣━ InternalServerErrorException
-            ┣━ NotImplementedException
-            ┣━ BadGatewayException
-            ┣━ ServiceUnavailableException
-            ┣━ GatewayTimeoutException
-            ┣━ HTTPVersionNotSupportedException
-            ┣━ VariantAlsoNegotiatesException
-            ┗━ NetworkAuthenticationRequiredException
+  ├─ ClientException (implements PSR-18 ClientExceptionInterface)
+  ├─ DriverException (implements PSR-18 RequestExceptionInterface)
+  ├─ ConnectionException (implements PSR-18 NetworkExceptionInterface)
+  ├─ SslCertificateException (implements PSR-18 NetworkExceptionInterface)
+  ├─ UnresolvableHostException (implements PSR-18 NetworkExceptionInterface)
+  └─ ResponseErrorException
+      ├─ ClientErrorException
+      │   ├─ BadRequestException
+      │   ├─ UnauthorizedException
+      │   ├─ PaymentRequiredException
+      │   ├─ ForbiddenException
+      │   ├─ NotFoundException
+      │   ├─ MethodNotAllowedException
+      │   ├─ NotAcceptableException
+      │   ├─ ProxyAuthenticationRequiredException
+      │   ├─ RequestTimeoutException
+      │   ├─ ConflictException
+      │   ├─ GoneException
+      │   ├─ LengthRequiredException
+      │   ├─ PreconditionFailedException
+      │   ├─ PayloadTooLargeException
+      │   ├─ UriTooLongException
+      │   ├─ UnsupportedMediaTypeException
+      │   ├─ RequestedRangeNotSatisfyableException
+      │   ├─ ExpectationFailedException
+      │   ├─ MisdirectedRequestException
+      │   ├─ UpgradeRequiredException
+      │   ├─ PreconditionRequiredException
+      │   ├─ TooManyRequestsException
+      │   ├─ RequestHeaderFieldsTooLargeException
+      │   └─ UnavailableForLegalReasonsException
+      └─ ServerErrorException
+          ├─ InternalServerErrorException
+          ├─ NotImplementedException
+          ├─ BadGatewayException
+          ├─ ServiceUnavailableException
+          ├─ GatewayTimeoutException
+          ├─ HTTPVersionNotSupportedException
+          ├─ VariantAlsoNegotiatesException
+          └─ NetworkAuthenticationRequiredException
 ```
 
 All response error exceptions provide getters for the request and response instance, so you can do stuff like
