@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Radiergummi\Wander\Body;
+namespace Radiergummi\Wander\Serializers;
 
 use InvalidArgumentException;
 use Nyholm\Psr7\Stream;
@@ -15,10 +15,10 @@ class UrlEncodedSerializer implements SerializerInterface
 {
     /**
      * Writes URL encoded data to the request body
-     * 
+     *
      * @param RequestInterface $request
      * @param mixed            $body
-     * 
+     *
      * @return RequestInterface
      */
     public function applyBody(RequestInterface $request, $body): RequestInterface

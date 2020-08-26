@@ -10,9 +10,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
-use Radiergummi\Wander\Body\JsonSerializer;
-use Radiergummi\Wander\Body\PlainTextSerializer;
-use Radiergummi\Wander\Body\UrlEncodedSerializer;
 use Radiergummi\Wander\Drivers\StreamDriver;
 use Radiergummi\Wander\Exceptions\ResponseErrorException;
 use Radiergummi\Wander\Http\MediaType;
@@ -20,6 +17,9 @@ use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
 use Radiergummi\Wander\Interfaces\DriverInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
+use Radiergummi\Wander\Serializers\JsonSerializer;
+use Radiergummi\Wander\Serializers\PlainTextSerializer;
+use Radiergummi\Wander\Serializers\UrlEncodedSerializer;
 
 /**
  * Wander Client
@@ -40,7 +40,7 @@ class Wander implements HttpClientInterface
 
     /**
      * Holds all body serializers
-     * 
+     *
      * @var array<string, class-string<Interfaces\SerializerInterface>>
      */
     protected array $bodySerializers = [
@@ -96,7 +96,7 @@ class Wander implements HttpClientInterface
 
     /**
      * Retrieves all supported media type serializers
-     * 
+     *
      * @return array<string, class-string<Interfaces\SerializerInterface>>
      */
     public function getBodySerializers(): array
@@ -106,11 +106,11 @@ class Wander implements HttpClientInterface
 
     /**
      * Adds a new body serializer
-     * 
+     *
      * @param string $mediaType
      * @param string $serializer
      * @psalm-param class-string<Interfaces\SerializerInterface> $serializer
-     * 
+     *
      * @return $this
      */
     public function addBodySerializer(

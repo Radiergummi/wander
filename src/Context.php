@@ -9,11 +9,11 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
-use Radiergummi\Wander\Body\PlainTextSerializer;
 use Radiergummi\Wander\Http\Authorization;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
+use Radiergummi\Wander\Serializers\PlainTextSerializer;
 
 use function base64_encode;
 use function http_build_query;

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
+use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Stream;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Psr\Http\Message\StreamInterface;
 use Radiergummi\Wander\Http\Status;
-use Zend\HttpHandlerRunner\Emitter\SapiEmitter;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
