@@ -13,6 +13,7 @@ interface DriverInterface extends ClientInterface
      * Sets the response factory instance to use.
      *
      * @param ResponseFactoryInterface $responseFactory Instance of a PSR-17 factory.
+     * @throws DriverException If an error occurs before dispatching the request
      */
     public function setResponseFactory(
         ResponseFactoryInterface $responseFactory

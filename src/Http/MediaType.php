@@ -203,6 +203,11 @@ final class MediaType
     public const APPLICATION_X_TAR = 'application/x-tar';
 
     /**
+     * URL-encoded data
+     */
+    public const APPLICATION_X_WWW_FORM_URLENCODED = 'application/x-www-form-urlencoded';
+
+    /**
      * ZIP archive (.zip)
      */
     public const APPLICATION_ZIP = 'application/zip';

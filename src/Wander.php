@@ -10,8 +10,12 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Radiergummi\Wander\Body\JsonSerializer;
+use Radiergummi\Wander\Body\PlainTextSerializer;
+use Radiergummi\Wander\Body\UrlEncodedSerializer;
 use Radiergummi\Wander\Drivers\StreamDriver;
 use Radiergummi\Wander\Exceptions\ResponseErrorException;
+use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
 use Radiergummi\Wander\Interfaces\DriverInterface;
@@ -33,6 +37,17 @@ class Wander implements HttpClientInterface
     protected RequestFactoryInterface $requestFactory;
 
     protected ResponseFactoryInterface $responseFactory;
+
+    /**
+     * Holds all body serializers
+     * 
+     * @var array<string, class-string<Interfaces\SerializerInterface>>
+     */
+    protected array $bodySerializers = [
+        MediaType::APPLICATION_JSON => JsonSerializer::class,
+        MediaType::TEXT_PLAIN => PlainTextSerializer::class,
+        MediaType::APPLICATION_X_WWW_FORM_URLENCODED => UrlEncodedSerializer::class
+    ];
 
     public function __construct(
         ?DriverInterface $driver = null,
@@ -77,6 +92,34 @@ class Wander implements HttpClientInterface
     public function getResponseFactory(): ResponseFactoryInterface
     {
         return $this->responseFactory;
+    }
+
+    /**
+     * Retrieves all supported media type serializers
+     * 
+     * @return array<string, class-string<Interfaces\SerializerInterface>>
+     */
+    public function getBodySerializers(): array
+    {
+        return $this->bodySerializers;
+    }
+
+    /**
+     * Adds a new body serializer
+     * 
+     * @param string $mediaType
+     * @param string $serializer
+     * @psalm-param class-string<Interfaces\SerializerInterface> $serializer
+     * 
+     * @return $this
+     */
+    public function addBodySerializer(
+        string $mediaType,
+        string $serializer
+    ): self {
+        $this->bodySerializers[$mediaType] = $serializer;
+
+        return $this;
     }
 
     /**

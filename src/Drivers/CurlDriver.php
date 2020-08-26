@@ -10,6 +10,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Radiergummi\Wander\Exceptions\ClientException;
 use Radiergummi\Wander\Exceptions\ConnectionException;
+use Radiergummi\Wander\Exceptions\DriverException;
 use Radiergummi\Wander\Exceptions\SslCertificateException;
 use Radiergummi\Wander\Exceptions\UnresolvableHostException;
 use Radiergummi\Wander\Http\Header;
@@ -90,19 +91,29 @@ class CurlDriver extends AbstractDriver
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
+        $url = (string)$request->geturi();
+
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            throw new DriverException($request, "URL '{$url}' is not a valid URL");
+        }
+
         // Create a curl handle
         $handle = curl_init();
         $options = $this->getDefaultOptions() ?? [];
 
         // Set the URL
-        $options[CURLOPT_URL] = (string)$request->getUri();
+        $options[CURLOPT_URL] = $url;
 
         // Alias *all* HTTP error codes as 200 and work them out on the client
         $options[CURLOPT_HTTP200ALIASES] = Status::getErrorCodes();
         $options[CURLOPT_FAILONERROR] = false;
 
         // If we've got a body, append it to the request
-        if (($bodyLength = $request->getBody()->getSize()) > 0) {
+        if (
+            ($bodyLength = $request->getBody()->getSize()) > 0 &&
+            !Method::mayNotIncludeBody($request->getMethod())
+        ) {
+
             $options[CURLOPT_INFILE] = static::detach($request->getBody());
             $options[CURLOPT_INFILESIZE] = $bodyLength;
 

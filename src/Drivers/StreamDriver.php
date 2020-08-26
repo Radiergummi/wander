@@ -8,8 +8,10 @@ use InvalidArgumentException;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Radiergummi\Wander\Exceptions\DriverException;
 use Radiergummi\Wander\Exceptions\ResponseErrorException;
 use Radiergummi\Wander\Http\Header;
+use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
 use RuntimeException;
 
@@ -26,6 +28,12 @@ class StreamDriver extends AbstractDriver
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
+        $url = (string)$request->geturi();
+
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            throw new DriverException($request, "URL '{$url}' is not a valid URL");
+        }
+
         $options = [
             'http' => [
                 'ignore_errors' => true,
@@ -36,12 +44,15 @@ class StreamDriver extends AbstractDriver
         ];
 
         // If we've got a body, append it to the request
-        if (($bodyLength = $request->getBody()->getSize()) > 0) {
+        if (
+            ($bodyLength = $request->getBody()->getSize()) > 0 &&
+            !Method::mayNotIncludeBody($request->getMethod())
+        ) {
             $body = $request->getBody();
             $options['content'] = static::detach($body);
 
             // Set the Content-Length header, unless already configured
-            if (! $request->hasHeader(Header::CONTENT_LENGTH)) {
+            if (!$request->hasHeader(Header::CONTENT_LENGTH)) {
                 /**
                  * This is necessary due to PHPStorm detecting--correctly so--that
                  * the helper methods return a MessageInterface instance. I would
@@ -64,7 +75,7 @@ class StreamDriver extends AbstractDriver
         $context = stream_context_create($options);
         $sink = Stream::create();
         $responseBody = file_get_contents(
-            (string)$request->getUri(),
+            $url,
             false,
             $context,
         );

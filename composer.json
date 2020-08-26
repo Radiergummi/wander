@@ -1,5 +1,6 @@
 {
     "name": "radiergummi/wander",
+    "version": "1.0.0",
     "description": "A PHP client for the modern world",
     "type": "library",
     "license": "MIT",
@@ -16,7 +17,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Radiergummi\\Wander\\Tests\\": "tests/"
+            "Radiergummi\\Wander\\Tests\\Unit\\": "tests/unit",
+            "Radiergummi\\Wander\\Tests\\Integration\\": "tests/integration"
         }
     },
     "require": {
@@ -30,10 +32,16 @@
         "sort-packages": true
     },
     "require-dev": {
+        "nyholm/psr7-server": "^1.0",
         "phpunit/phpunit": "^9.3",
-        "vimeo/psalm": "^3.14"
+        "symfony/process": "^5.1",
+        "vimeo/psalm": "^3.14",
+        "zendframework/zend-httphandlerrunner": "^1.1"
     },
     "scripts": {
+        "post-install-cmd": [
+            "./scripts/fetch_phpdoc.sh"
+        ],
         "test": "phpunit -c phpunit.xml",
         "static-analysis": "psalm --output-format=compact --no-progress --threads=$(nproc)"
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Radiergummi\Wander\Tests;
+namespace Radiergummi\Wander\Tests\Unit;
 
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Uri;

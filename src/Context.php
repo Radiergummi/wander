@@ -7,12 +7,12 @@ namespace Radiergummi\Wander;
 use InvalidArgumentException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
-use Radiergummi\Wander\Body\UnEncodedBody;
+use Radiergummi\Wander\Body\PlainTextSerializer;
 use Radiergummi\Wander\Http\Authorization;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\MediaType;
-use Radiergummi\Wander\Interfaces\BodyInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
 
 use function base64_encode;
@@ -25,11 +25,15 @@ class Context
 
     protected RequestInterface $request;
 
-    protected ?BodyInterface $body = null;
+    /**
+     * @var mixed|null
+     */
+    protected $body = null;
 
     /**
      * @param HttpClientInterface $client  HTTP client instance
      * @param RequestInterface    $request HTTP request to wrap
+     * @internal
      */
     public function __construct(
         HttpClientInterface $client,
@@ -364,8 +368,10 @@ class Context
      * @return $this
      * @throws InvalidArgumentException
      */
-    public function withAuthorization(string $type, string $credentials): self
-    {
+    public function withAuthorization(
+        string $type,
+        string $credentials
+    ): self {
         return $this->withHeader(
             Header::AUTHORIZATION,
             "{$type} {$credentials}"
@@ -423,6 +429,17 @@ class Context
     }
 
     /**
+     * Retrieves the current content type.
+     * If none is set, null will be returned.
+     *
+     * @return string|null
+     */
+    public function getContentType(): ?string
+    {
+        return $this->getHeaderLine(Header::CONTENT_TYPE) ?: null;
+    }
+
+    /**
      * Shorthand method to set the Content-Type header to application/json
      *
      * @return $this
@@ -465,29 +482,17 @@ class Context
     }
 
     /**
-     * Sets the request body. Data may be passed with any type, as serialization
-     * happens just before actually dispatching the request. This allows to set the
-     * content encoding separately or re-define it conditionally.
+     * Sets the request body. Data may be passed with any type, as
+     * serialization happens just before actually dispatching the
+     * request. This allows to set the content encoding separately
+     * or re-define it conditionally.
      *
-     * @param mixed $body
+     * @param mixed|null $body
      *
      * @return $this
      */
     public function withBody($body): self
     {
-        // Setting the body to NULL should do what users expect - remove the body
-        if ($body === null) {
-            $this->body = null;
-
-            return $this;
-        }
-
-        // If the passed body is not a body instance yet, we store it as a temporary
-        // unencoded body. That allows us to define the content encoding later on.
-        if (!($body instanceof BodyInterface)) {
-            $body = new UnEncodedBody($body);
-        }
-
         $this->body = $body;
 
         return $this;
@@ -496,9 +501,9 @@ class Context
     /**
      * Retrieves the body instance
      *
-     * @return BodyInterface|null
+     * @return mixed|null
      */
-    public function getBody(): ?BodyInterface
+    public function getBody()
     {
         return $this->body;
     }
@@ -510,7 +515,7 @@ class Context
      */
     public function hasBody(): bool
     {
-        return (bool)$this->body;
+        return isset($this->body);
     }
 
     /**
@@ -525,9 +530,52 @@ class Context
      */
     public function run(): ResponseInterface
     {
-        // TODO: Set serialized body depending on content type
+        // If we don't have a body, request right away
+        if (!$this->hasBody()) {
+            return $this->client->request($this->request);
+        }
 
-        return $this->client->request($this->request);
+        /** @var mixed $body */
+        $body = $this->getBody();
+
+        // If we have a stream body already, we can simply pass that
+        // to the request directly. The user must have serialized it
+        // manually already.
+        if ($body instanceof StreamInterface) {
+            $request = $this
+                ->getRequest()
+                ->withBody($body);
+
+            $this->setRequest($request);
+
+            return $this->client->request($request);
+        }
+
+        // Resolve the appropriate serializer by resolving the media
+        // type from the current request instance.
+        $contentType = $this->getContentType();
+        $supportedMediaTypes = $this->client->getBodySerializers();
+        $serializerClass = $supportedMediaTypes[$contentType]
+            ?? PlainTextSerializer::class;
+
+        // Create an instance of the serializer. I'm not quite happy
+        // with this yet; I have a feeling we should already have an
+        // instance available here, but I'm not quite sure how to go
+        // about that.
+        $serializer = new $serializerClass();
+
+        // Let the serializer apply the body to the request. Passing
+        // the request makes it possible to alter headers, depending
+        // on the serialization method (eg. multipart).
+        $request = $serializer->applyBody(
+            $this->request,
+            $body
+        );
+
+        // Set the modified request instance for later reference
+        $this->setRequest($request);
+
+        return $this->client->request($request);
     }
 
     /**

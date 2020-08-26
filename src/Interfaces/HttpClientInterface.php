@@ -15,6 +15,15 @@ use Radiergummi\Wander\Exceptions\WanderException;
 interface HttpClientInterface
 {
     /**
+     * Retrieves the dictionary of supported media types.
+     * This MUST return an array that maps media types to
+     * fully-qualified body class paths.
+     * 
+     * @return array<string, class-string<SerializerInterface>>
+     */
+    public function getBodySerializers(): array;
+
+    /**
      * Handles a request and returns the response.
      *
      * @param RequestInterface $request Request to handle

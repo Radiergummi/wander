@@ -10,12 +10,15 @@ Making HTTP requests in PHP is a pain. Either you go full-low-level mode and use
 configuration, lots of overhead, or missing PSR compatibility. Wander solves all of those.
 
 ### Features
- - **Simple, discoverable API**  
+ - **Simple, discoverable API**
    Wander exposes _all_ request options as chainable methods.
- - **Fully standards compliant**  
-   Wander relies on PSR-17 factories, PSR-18 client drivers and PSR-7 requests/responses. Use our implementations of choice 
+ - **Fully standards compliant**
+   Wander relies on PSR-17 factories, PSR-18 client drivers and PSR-7 requests/responses. Use our implementations of choice
    ([nyholm/psr7](https://github.com/nyholm/psr7)) or bring your own.
- - **Compatible with other solutions**  
+ - **Pluggable serialization**
+   Request bodies are serialized depending on the content type, transparently and automatically. Use a format we
+   don't know yet? Use your own (and submit a PR!).
+ - **Compatible with other solutions**
    As drivers are, essentially, PSR-18 clients, you can swap in any other client library and make it work out of the box. This provides for a smooth migration path.
 
 ```php
@@ -54,7 +57,7 @@ $response = $client
     ->run();
 ```
 
-Wander has several shorthands for common HTTP methods on the `Wander` object (`GET`, `PUT`, `POST`, `DELETE` and so on). 
+Wander has several shorthands for common HTTP methods on the `Wander` object (`GET`, `PUT`, `POST`, `DELETE` and so on).
 
 ### Creating request contexts
 A slightly longer version of the above example, using the `createContext` method the shorthands also use internally:
@@ -68,8 +71,8 @@ $response = $client
     ->run();
 ```
 
-This context being created here wraps around [PSR-7 requests](https://www.php-fig.org/psr/psr-7/) and adds a few helper methods, making it possible to chain the 
-method calls. Doing so requires creating request instances, which of course relies on a [PSR-17 factory](https://www.php-fig.org/psr/psr-17/) you can swap out for 
+This context being created here wraps around [PSR-7 requests](https://www.php-fig.org/psr/psr-7/) and adds a few helper methods, making it possible to chain the
+method calls. Doing so requires creating request instances, which of course relies on a [PSR-17 factory](https://www.php-fig.org/psr/psr-17/) you can swap out for
 your own. More on that below.
 
 ### Sending PSR-7 requests directly
@@ -92,7 +95,281 @@ Reference
 ---------
 This reference shows all available methods.
 
-> (TBD)
+### Wander: HTTP Client
+This section describes all methods of the HTTP client itself. When creating a new instance, you can pass several
+dependencies:
+
+**Signature:**
+```php
+new Wander(
+    DriverInterface $driver = null,
+    ?RequestFactoryInterface $requestFactory = null,
+    ?ResponseFactoryInterface $responseFactory = null
+)
+```
+
+**Parameters:**
+| Parameter          | Type                       | Required | Description                                     |
+|:-------------------|:---------------------------|:---------|:------------------------------------------------|
+| `$driver`          | `DriverInterface`          | No       | Underlying HTTP client driver. Defaults to curl |
+| `$requestFactory`  | `RequestFactoryInterface`  | No       | PSR-17 request factory                          |
+| `$responseFactory` | `ResponseFactoryInterface` | No       | PSR-17 response factory                         |
+
+#### `get`: Create Context Shorthand
+Creates a new request context for a `GET` request.
+
+**Signature:**
+```php
+get(UriInterface|string $uri): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+
+#### `post`: Create Context Shorthand
+Creates a new request context for a `POST` request.
+
+**Signature:**
+```php
+post(UriInterface|string $uri, ?mixed $body = null): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+| `$body`   | Any type                   | No       | Data to use as the request body.           |
+
+#### `put`: Create Context Shorthand
+Creates a new request context for a `PUT` request.
+
+**Signature:**
+```php
+put(UriInterface|string $uri, ?mixed $body = null): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+| `$body`   | Any type                   | No       | Data to use as the request body.           |
+
+#### `patch`: Create Context Shorthand
+Creates a new request context for a `PATCH` request.
+
+**Signature:**
+```php
+patch(UriInterface|string $uri, ?mixed $body = null): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+| `$body`   | Any type                   | No       | Data to use as the request body.           |
+
+#### `delete`: Create Context Shorthand
+Creates a new request context for a `DELETE` request.
+
+**Signature:**
+```php
+delete(UriInterface|string $uri, ?mixed $body = null): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+
+#### `head`: Create Context Shorthand
+Creates a new request context for a `HEAD` request.
+
+**Signature:**
+```php
+head(UriInterface|string $uri, ?mixed $body = null): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+
+#### `options`: Create Context Shorthand
+Creates a new request context for a `OPTIONS` request.
+
+**Signature:**
+```php
+options(UriInterface|string $uri, ?mixed $body = null): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+
+#### `createContext`
+Allows creation of a new request context for an arbitrary request method.
+
+**Signature:**
+```php
+createContext(string $method, UriInterface|string $uri): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                |
+|:----------|:---------------------------|:---------|:-------------------------------------------|
+| `$method` | `string`                   | Yes      | Any request method, case sensitive.        |
+| `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
+
+#### `createContextFromRequest`
+Allows creation of a new request context from an existing request instance.
+
+**Signature:**
+```php
+createContextFromRequest(RequestInterface $request): Context
+```
+
+**Parameters:**
+| Parameter | Type                       | Required | Description                                           |
+|:----------|:---------------------------|:---------|:------------------------------------------------------|
+| `$request` | `RequestInterface`        | Yes      | Existing request instance to create the context from. |
+
+#### `request`
+Dispatches a request instance on the client instances driver and returns the response.
+
+**Signature:**
+```php
+request(RequestInterface $request): ResponseInterface
+```
+
+**Parameters:**
+| Parameter  | Type                      | Required | Description          |
+|:-----------|:--------------------------|:---------|:---------------------|
+| `$request` | `RequestInterface`        | Yes      | Request to dispatch. |
+
+
+
+
+
+### Context: Request context
+The context object performs transformations on an underlying request instance. In spirit with PSR-7, the request
+is of course immutable. The context will only keep reference to the current instance.
+This allows us to chain all method calls and dispatch requests, all without leaving "the chain" even once. We
+can also add helper methods and keep references to other objects--like the client itself, for example--making it
+very easy to use and extend.
+Note that you should rely on the client creating contexts for you; using the constructor manually is
+discouraged.
+
+**Signature:**
+```php
+new Context(
+    HttpClientInterface $client,
+    RequestInterface $request
+)
+```
+
+**Parameters:**
+| Parameter | Type                  | Required | Description                                        |
+|:----------|:----------------------|:---------|:---------------------------------------------------|
+| `$client` | `HttpClientInterface` | Yes      | HTTP client instance to dispatch the request with. |
+| `$request` | `RequestInterface`   | Yes      | Request as created by our request factory.         |
+
+#### `setRequest`
+Replaces the request instance.
+
+#### `getRequest`
+Retrieves the request instance.
+
+#### `withMethod`
+Replaces the HTTP request method.
+
+#### `getMethod`
+Retrieves the HTTP request method.
+
+#### `withUri`
+Replaces the URI instance.
+
+#### `getUri`
+Retrieves the URI instance.
+
+#### `withQueryString`
+Adds a query string to the URI.
+
+#### `getQueryString`
+Retrieves the query string from the URI.
+
+#### `withQueryParameters`
+Adds multiple query parameters to the URI.
+
+#### `getQueryParameters`
+Retrieves all query parameters from the URI as a dictionary.
+
+#### `withQueryParameter`
+Adds a query parameter to the URI.
+
+#### `withoutQueryParameter`
+Removes a single query parameter from the URI.
+
+#### `getQueryParameter`
+Retrieves a single query parameter from the URI by name.
+
+#### `withHeaders`
+Adds multiple headers to the request.
+
+#### `getHeaders`
+Retrieves all request headers as a dictionary. Proxy to the PSR-7 request method.
+
+#### `withHeader`
+Adds a given header to the request. Proxy to the PSR-7 request method.
+
+#### `withoutHeader`
+Removes a given header if it is set on the request. Proxy to the PSR-7 request method.
+
+#### `getHeader`
+Retrieves an array of all header values. Proxy to the PSR-7 request method.
+
+#### `getHeaderLine`
+Retrieves all header values, delimited by a comma, as a single string. Proxy to the PSR-7 request method.
+
+#### `withAuthorization`
+Sets the `Authorization` header to the given authentication type and credentials.
+
+#### `withBasicAuthorization`
+Sets the `Authorization` header to the type `Basic` and encodes the comma-delimited credentials as Base64.
+
+#### `withBearerAuthorization`
+Sets the `Authorization` header to the type `Bearer` and uses the token for the credentials.
+
+#### `withContentType`
+Sets the `Content-Type` header.
+
+#### `getContentType`
+Retrieves the value of the `Content-Type` header if set, returns `null` otherwise.
+
+#### `asJson`
+Sets the `Content-Type` header to JSON (`application/json`).
+
+#### `asXml`
+Sets the `Content-Type` header to XML (`text/xml`).
+
+#### `asPlainText`
+Sets the `Content-Type` header to plain text (`text/plain`).
+
+#### `withBody`
+Sets the (unserialized) body data on the context. This will be serialized according to the `Content-Type` header
+before dispatching the request, taking care of serialization automatically, so you don't have to.
+By passing a Stream instance, this process will be skipped in the body will be set on the request as-is.
+
+#### `getBody`
+Retrieves the current body data.
+
+#### `hasBody`
+Checks whether the context has any body data.
+
+#### `run`
+Dispatches the request to the client instance.
 
 Contributing
 ------------

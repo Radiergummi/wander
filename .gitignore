@@ -3,10 +3,19 @@
 .vscode/
 
 # Composer dependencies
-vendor/
+/vendor/
 
 # Test tool output
-reports/
+/reports/
+
+# Temporary
+/docs/
 
 # PHPUnit fragment
 .phpunit.result.cache
+
+# PHPDocumentor cache
+.phpdoc/
+
+# PHPDocumentor PHAR, will be downloaded after composer install
+phpdoc.phar

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Radiergummi\Wander\Http;
 
+use function in_array;
+
 /**
  * HTTP Methods based on RFC 7231 and the IANA HTTP Method Registry.
  *
@@ -251,6 +253,22 @@ final class Method
      * @see https://tools.ietf.org/html/rfc3253#section-3.5
      */
     public const VERSION_CONTROL = 'VERSION-CONTROL';
+
+    /**
+     * Whether a given method may explicitly NOT contain a body
+     *
+     * @param string $method
+     *
+     * @return bool
+     */
+    public static function mayNotIncludeBody(string $method): bool
+    {
+        return in_array(
+            $method,
+            [self::GET, self::HEAD],
+            true
+        );
+    }
 
     private function __construct()
     {
