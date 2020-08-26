@@ -1,9 +1,8 @@
 language: php
 php:
-  - '7.4'
+  - '7.4.9'
 
 install: composer install --no-progress --no-interaction --optimize-autoloader
-before_script: php -i
 script:
   - composer static-analysis
   - composer test
