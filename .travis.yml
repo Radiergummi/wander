@@ -1,0 +1,11 @@
+language: php
+php:
+  - '7.4'
+
+jobs:
+  include:
+    - stage: Static Analyis
+      script: composer static-analysis
+
+    - stage: Tests
+      script: composer test
