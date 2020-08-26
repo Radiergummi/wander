@@ -38,6 +38,9 @@
         "vimeo/psalm": "^3.14",
         "laminas/laminas-httphandlerrunner": "^1.1"
     },
+    "suggest": {
+        "ext-curl": "To use the curl driver"
+    },
     "scripts": {
         "post-install-cmd": [
             "./scripts/fetch_phpdoc.sh"
