@@ -1,6 +1,6 @@
 Wander
 ======
-> A modern, lightweight, fast and type-safe HTTP client for PHP
+> A modern, lightweight, fast and type-safe HTTP client for PHP 7.4
 
 > **Note:** I'm still actively working on Wander, and it's barely working right now. Help out if you'd like to, but don't use it yet.
 

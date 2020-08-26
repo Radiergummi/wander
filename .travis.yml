@@ -4,6 +4,9 @@ php:
 
 jobs:
   include:
+    - stage: Install dependencies
+      script: composer install --no-progress --no-interaction --optimize-autoloader
+
     - stage: Static Analyis
       script: composer static-analysis
 
