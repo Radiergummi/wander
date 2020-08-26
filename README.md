@@ -1,4 +1,4 @@
-Wander
+Wander ![Build Status](https://api.travis-ci.org/Radiergummi/wander.svg?branch=master)
 ======
 > A modern, lightweight, fast and type-safe HTTP client for PHP 7.4
 
