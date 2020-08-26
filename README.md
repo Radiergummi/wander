@@ -28,7 +28,7 @@ configuration, lots of overhead, or missing PSR compatibility. Wander solves all
 $responseBody = (new Wander())
     ->patch('https://example.com')
     ->withQueryParameter('foo', 'bar')
-    ->withAuthorization('Bearer', getenv('TOKEN'))
+    ->withBasicAuthorization('User', 'Pass')
     ->withHeaders([
         Header::ACCEPT => MediaType::APPLICATION_JSON,
     ])
