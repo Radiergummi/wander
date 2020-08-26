@@ -36,13 +36,13 @@
         "phpunit/phpunit": "^9.3",
         "symfony/process": "^5.1",
         "vimeo/psalm": "^3.14",
-        "zendframework/zend-httphandlerrunner": "^1.1"
+        "laminas/laminas-httphandlerrunner": "^1.1"
     },
     "scripts": {
         "post-install-cmd": [
             "./scripts/fetch_phpdoc.sh"
         ],
-        "test": "phpunit -c phpunit.xml",
-        "static-analysis": "psalm --output-format=compact --no-progress --threads=$(nproc)"
+        "test": "./vendor/bin/phpunit -c phpunit.xml",
+        "static-analysis": "./vendor/bin/psalm --output-format=compact --no-progress --threads=$(nproc)"
     }
 }
