@@ -20,6 +20,9 @@ configuration, lots of overhead, or missing PSR compatibility. Wander solves all
    don't know yet? Use your own (and submit a PR!).
  - **Compatible with other solutions**
    As drivers are, essentially, PSR-18 clients, you can swap in any other client library and make it work out of the box. This provides for a smooth migration path.
+ - **Extensive exceptions**
+   Wander throws several exceptions, all of which follow a clear inheritance structure. This makes it
+   exceptionally easy to handle errors as coarsly or fine-grained as necessary.
 
 ```php
 $responseBody = (new Wander())
@@ -90,6 +93,91 @@ $response = $client->request($request);
 ### Using a custom driver
 Drivers are what actually handles dispatching requests and processing responses. They have one, simple responsibility: Transform a request instance into a response
 instance. By default, Wander uses a PHP stream driver.
+
+### Exception handling
+Wander follows an exception hierarchy that represents different classes of errors.
+In contrary to PSR-18 clients, I firmly believe response status codes from the 400 or 500 range _should_ throw
+an exception, because you end up checking for them anyway. Exceptions are friends! Especially in thee case of
+HTTP, where an error be an expected part of the flow.
+
+The exception tree looks as follows:
+```
+ WanderException (inherits from \RuntimeException)
+  ┣━ ClientException (implements PSR-18 ClientExceptionInterface)
+  ┣━ DriverException (implements PSR-18 RequestExceptionInterface)
+  ┣━ ConnectionException (implements PSR-18 NetworkExceptionInterface)
+  ┣━ SslCertificateException (implements PSR-18 NetworkExceptionInterface)
+  ┣━ UnresolvableHostException (implements PSR-18 NetworkExceptionInterface)
+  ┗━ ResponseErrorException
+       ┣━ ClientErrorException
+       ┃   ┣━ BadRequestException
+       ┃   ┣━ UnauthorizedException
+       ┃   ┣━ PaymentRequiredException
+       ┃   ┣━ ForbiddenException
+       ┃   ┣━ NotFoundException
+       ┃   ┣━ MethodNotAllowedException
+       ┃   ┣━ NotAcceptableException
+       ┃   ┣━ ProxyAuthenticationRequiredException
+       ┃   ┣━ RequestTimeoutException
+       ┃   ┣━ ConflictException
+       ┃   ┣━ GoneException
+       ┃   ┣━ LengthRequiredException
+       ┃   ┣━ PreconditionFailedException
+       ┃   ┣━ PayloadTooLargeException
+       ┃   ┣━ UriTooLongException
+       ┃   ┣━ UnsupportedMediaTypeException
+       ┃   ┣━ RequestedRangeNotSatisfyableException
+       ┃   ┣━ ExpectationFailedException
+       ┃   ┣━ MisdirectedRequestException
+       ┃   ┣━ UpgradeRequiredException
+       ┃   ┣━ PreconditionRequiredException
+       ┃   ┣━ TooManyRequestsException
+       ┃   ┣━ RequestHeaderFieldsTooLargeException
+       ┃   ┗━ UnavailableForLegalReasonsException
+       ┗━ ServerErrorException
+            ┣━ InternalServerErrorException
+            ┣━ NotImplementedException
+            ┣━ BadGatewayException
+            ┣━ ServiceUnavailableException
+            ┣━ GatewayTimeoutException
+            ┣━ HTTPVersionNotSupportedException
+            ┣━ VariantAlsoNegotiatesException
+            ┗━ NetworkAuthenticationRequiredException
+```
+
+All response error exceptions provide getters for the request and response instance, so you can do stuff like
+this easily:
+```php
+try {
+  $request->run();
+} catch (UnauthorizedException | ForbiddenException $e) {
+  $this->refreshAccessToken();
+
+  return $this->retry();
+} catch (GoneException $e) {
+  throw new RecordDeletedExeption(
+    $e->getRequest()->getUri()->getPath()
+  );
+} catch (BadRequestException $e) {
+  $responseBody = $e->getResponse()->getBody()->getContents();
+  $error = json_decode($responseBody, JSON_THROW_ON_ERROR);
+  $field = $error['field'] ?? null;
+
+  if ($field) {
+    throw new ValidatorException("Failed to validate {$field}");
+  }
+
+  throw new UnknownException($error);
+} catch (WanderException $e) {
+
+  // Simply catch all others
+  throw new RuntimeException(
+    'Server returned an unknown error: ' .
+    $e->getResponse()->getBody()->getContents()
+  );
+}
+```
+This was just one of a myriad of ways to handle errors with these kinds of exceptions!
 
 Reference
 ---------

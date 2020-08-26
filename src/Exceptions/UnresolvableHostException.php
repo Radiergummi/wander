@@ -2,6 +2,7 @@
 
 namespace Radiergummi\Wander\Exceptions;
 
+use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Message\UriInterface;
 use Throwable;
 
