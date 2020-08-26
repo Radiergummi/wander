@@ -11,6 +11,11 @@
 project_root=$(realpath $(dirname "$0" | dirname -))
 phpdoc_phar_path="${project_root}/phpdoc.phar"
 
+# We don't need phpdoc in production
+if [ -z "$CI" ]; then
+    exit 0
+fi
+
 # If phpdoc is present, exit right away
 if [ -f $phpdoc_phar_path ]; then
     exit 0
