@@ -127,7 +127,7 @@ class StreamDriver extends AbstractDriver
 
         // The leading comma is deliberate, as we want to discard the full match
         [, $protocolVersion, $statusCode, $reasonPhrase] = $match + [
-            null,
+            '',
             '',
             '',
             '',
@@ -135,9 +135,10 @@ class StreamDriver extends AbstractDriver
             '',
         ];
 
-        if ( ! $reasonPhrase) {
-            $reasonPhrase = Status::getMessage((int)$statusCode);
-        }
+        // Make sure we have a reason phrase
+        $reasonPhrase = $reasonPhrase
+            ?: Status::getMessage((int)$statusCode)
+               ?? '';
 
         $response = $this
             ->getResponseFactory()
