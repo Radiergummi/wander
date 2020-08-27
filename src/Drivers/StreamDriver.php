@@ -189,6 +189,6 @@ class StreamDriver extends AbstractDriver
             throw new UnresolvableHostException($uri);
         }
 
-        return $uri->withHost($records[0]['ip']);
+        return $uri->withHost((string)$records[0]['ip']);
     }
 }
