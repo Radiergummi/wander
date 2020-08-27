@@ -39,7 +39,16 @@ try {
 
         // Body endpoint: Mirrors the request body in the response body
         case '/body':
-            $response = $response->withBody($request->getBody());
+            $requestBody = $request->getBody()->getContents();
+
+            fwrite(
+                STDERR,
+                "Mirroring request body: '{$requestBody}'\n"
+            );
+
+            $response = $response->withBody(Stream::create(
+                $requestBody
+            ));
             break;
 
         // Status endpoint: Returns a response with the status code specified in

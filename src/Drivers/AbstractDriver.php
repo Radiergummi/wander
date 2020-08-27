@@ -7,6 +7,7 @@ namespace Radiergummi\Wander\Drivers;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Radiergummi\Wander\Interfaces\DriverInterface;
+use RuntimeException;
 
 abstract class AbstractDriver implements DriverInterface
 {
@@ -38,10 +39,12 @@ abstract class AbstractDriver implements DriverInterface
      * @param StreamInterface $stream
      *
      * @return resource|null
+     * @throws RuntimeException
      */
     protected static function detach(StreamInterface $stream)
     {
         $clone = clone $stream;
+        $clone->rewind();
 
         return $clone->detach();
     }
