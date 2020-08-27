@@ -111,7 +111,7 @@ class CurlDriver extends AbstractDriver
         $options[CURLOPT_URL] = $url;
 
         // Set the HTTP version to use
-        $curlOptions[CURLOPT_HTTP_VERSION] = $this->resolveProtocolVersion(
+        $options[CURLOPT_HTTP_VERSION] = $this->resolveProtocolVersion(
             $request->getProtocolVersion()
         );
 
