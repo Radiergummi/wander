@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Radiergummi\Wander\Interfaces;
 
-use Radiergummi\Wander\Exceptions\DriverException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 
@@ -13,8 +12,8 @@ interface DriverInterface extends ClientInterface
     /**
      * Sets the response factory instance to use.
      *
-     * @param ResponseFactoryInterface $responseFactory Instance of a PSR-17 factory.
-     * @throws DriverException If an error occurs before dispatching the request
+     * @param ResponseFactoryInterface $responseFactory Instance of a PSR-17
+     *                                                  ‚factory.
      */
     public function setResponseFactory(
         ResponseFactoryInterface $responseFactory
