@@ -17,6 +17,7 @@ use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
 use RuntimeException;
+use UnexpectedValueException;
 
 use function count;
 use function curl_close;
@@ -32,6 +33,7 @@ use function strlen;
 use function strtolower;
 use function trim;
 
+use const CURL_HTTP_VERSION_2_0;
 use const CURLE_COULDNT_CONNECT;
 use const CURLE_COULDNT_RESOLVE_HOST;
 use const CURLE_FAILED_INIT;
@@ -102,6 +104,11 @@ class CurlDriver extends AbstractDriver
 
         // Set the URL
         $options[CURLOPT_URL] = $url;
+
+        // Set the HTTP version to use
+        $curlOptions[CURLOPT_HTTP_VERSION] = $this->resolveProtocolVersion(
+            $request->getProtocolVersion()
+        );
 
         // Alias *all* HTTP error codes as 200 and work them out on the client
         $options[CURLOPT_HTTP200ALIASES] = Status::getErrorCodes();
@@ -241,7 +248,10 @@ class CurlDriver extends AbstractDriver
         // Retrieve the protocol version if possible. This constant was added
         // only in curl 7.5.0, which is fairly new even for this library
         $protocolVersion = defined('CURLINFO_HTTP_VERSION')
-            ? (string)curl_getinfo($handle, (int)constant('CURLINFO_HTTP_VERSION'))
+            ? (string)curl_getinfo(
+                $handle,
+                (int)constant('CURLINFO_HTTP_VERSION')
+            )
             : '1.1';
 
         // Create a response instance
@@ -321,5 +331,35 @@ class CurlDriver extends AbstractDriver
     protected function getDefaultOptions(): ?array
     {
         return $this->defaultOptions;
+    }
+
+    /**
+     * Resolves the HTTP protocol version to a curl constant.
+     *
+     * @param string $protocolVersion
+     *
+     * @return int
+     * @throws UnexpectedValueException
+     */
+    private function resolveProtocolVersion(string $protocolVersion): int
+    {
+        switch ($protocolVersion) {
+            case '1.0':
+                return CURL_HTTP_VERSION_1_0;
+            case '1.1':
+                return CURL_HTTP_VERSION_1_1;
+            case '2.0':
+                if ( ! defined('CURL_HTTP_VERSION_2_0')) {
+                    throw new UnexpectedValueException(
+                        'Installed libcurl version has no HTTP 2.0 ' .
+                        'support. Update to libcurl 7.33 or greater to send ' .
+                        'HTTP 2.0 requests.'
+                    );
+                }
+
+                return CURL_HTTP_VERSION_2_0;
+        }
+
+        return CURL_HTTP_VERSION_NONE;
     }
 }
