@@ -10,7 +10,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Radiergummi\Wander\Exceptions\DriverException;
-use Radiergummi\Wander\Exceptions\ResponseErrorException;
 use Radiergummi\Wander\Exceptions\UnresolvableHostException;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\Method;
@@ -154,16 +153,6 @@ class StreamDriver extends AbstractDriver
             $response = $response->withHeader(
                 $name,
                 trim($value)
-            );
-        }
-
-        // If the status code is from the error ranges, we throw to indicate the
-        // request has failed. As the exception contains the response instance,
-        // users get to work with the response if they are inclined to.
-        if (Status::isError((int)$statusCode)) {
-            throw new ResponseErrorException(
-                $request,
-                $response
             );
         }
 
