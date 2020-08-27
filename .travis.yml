@@ -1,10 +1,10 @@
 language: php
 php:
-    - '7.4'
+     - '7.4'
     - nightly
     # Soon 🥳:
     #  - '8.0'
-install: composer install --no-progress --no-interaction --optimize-autoloader
+install: composer install --no-progress --no-interaction --optimize-autoloader --ignore-platform-reqs
 script:
     - composer static-analysis
     - composer test
