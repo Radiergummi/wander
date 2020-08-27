@@ -2,7 +2,7 @@ Wander ![Build Status](https://api.travis-ci.org/Radiergummi/wander.svg?branch=m
 ======
 > A modern, lightweight, fast and type-safe HTTP client for PHP 7.4
 
-> **Note:** I'm still actively working on Wander, and it's barely working right now. Help out if you'd like to, but don't use it yet.
+> **Note:** I'm still actively working on Wander. Help out if you'd like to, but I'd advise against using it yet.
 
 Introduction
 ------------
@@ -160,32 +160,32 @@ All response error exceptions provide getters for the request and response insta
 this easily:
 ```php
 try {
-  $request->run();
+    $request->run();
 } catch (UnauthorizedException | ForbiddenException $e) {
-  $this->refreshAccessToken();
+    $this->refreshAccessToken();
 
-  return $this->retry();
+    return $this->retry();
 } catch (GoneException $e) {
-  throw new RecordDeletedExeption(
-    $e->getRequest()->getUri()->getPath()
-  );
+    throw new RecordDeletedExeption(
+        $e->getRequest()->getUri()->getPath()
+    );
 } catch (BadRequestException $e) {
-  $responseBody = $e->getResponse()->getBody()->getContents();
-  $error = json_decode($responseBody, JSON_THROW_ON_ERROR);
-  $field = $error['field'] ?? null;
-
-  if ($field) {
-    throw new ValidatorException("Failed to validate {$field}");
-  }
-
-  throw new UnknownException($error);
+    $responseBody = $e->getResponse()->getBody()->getContents();
+    $error = json_decode($responseBody, JSON_THROW_ON_ERROR);
+    $field = $error['field'] ?? null;
+    
+    if ($field) {
+        throw new ValidatorException("Failed to validate {$field}");
+    }
+    
+    throw new UnknownException($error);
 } catch (WanderException $e) {
 
-  // Simply catch all others
-  throw new RuntimeException(
-    'Server returned an unknown error: ' .
-    $e->getResponse()->getBody()->getContents()
-  );
+    // Simply catch all others
+    throw new RuntimeException(
+        'Server returned an unknown error: ' .
+        $e->getResponse()->getBody()->getContents()
+    );
 }
 ```
 This was just one of a myriad of ways to handle errors with these kinds of exceptions!
