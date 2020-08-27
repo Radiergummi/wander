@@ -32,6 +32,8 @@ use Radiergummi\Wander\Serializers\UrlEncodedSerializer;
  */
 class Wander implements HttpClientInterface
 {
+    public const USER_AGENT = 'wander/1.0.0';
+
     protected DriverInterface $driver;
 
     protected RequestFactoryInterface $requestFactory;
