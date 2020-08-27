@@ -1,6 +1,6 @@
 language: php
 php:
-     - '7.4'
+    - '7.4'
     - nightly
     # Soon 🥳:
     #  - '8.0'
