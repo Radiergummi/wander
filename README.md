@@ -131,7 +131,12 @@ The exception tree looks as follows:
       │   ├─ UnsupportedMediaTypeException
       │   ├─ RequestedRangeNotSatisfyableException
       │   ├─ ExpectationFailedException
+      │   ├─ ImATeapotException
       │   ├─ MisdirectedRequestException
+      │   ├─ UnprocessableEntityException
+      │   ├─ LockedException
+      │   ├─ FailedDependencyException
+      │   ├─ TooEarlyException
       │   ├─ UpgradeRequiredException
       │   ├─ PreconditionRequiredException
       │   ├─ TooManyRequestsException
@@ -145,6 +150,9 @@ The exception tree looks as follows:
           ├─ GatewayTimeoutException
           ├─ HTTPVersionNotSupportedException
           ├─ VariantAlsoNegotiatesException
+          ├─ InsufficientStorageException
+          ├─ LoopDetectedException
+          ├─ NotExtendedException
           └─ NetworkAuthenticationRequiredException
 ```
 

@@ -265,7 +265,10 @@ class Wander implements HttpClientInterface
         $response = $this->driver->sendRequest($request);
 
         if (Status::isError($response->getStatusCode())) {
-            throw new ResponseErrorException($request, $response);
+            throw ResponseErrorException::create(
+                $request,
+                $response
+            );
         }
 
         return $response;
