@@ -25,12 +25,10 @@ use Symfony\Component\Process\Process;
 use function array_map;
 use function explode;
 use function fwrite;
-
 use function implode;
 use function in_array;
 use function realpath;
 use function sprintf;
-
 use function trim;
 use function usleep;
 
@@ -70,6 +68,13 @@ abstract class AbstractRequestTest extends TestCase
     protected ResponseFactoryInterface $responseFactory;
 
     protected UriFactoryInterface $uriFactory;
+
+    /**
+     * Holds a map of tests to skip, with a reason for why they are skipped
+     *
+     * @var array<string, string>
+     */
+    protected array $skippedTests = [];
 
     /**
      * Spawn the test server before testing starts.
@@ -345,9 +350,12 @@ abstract class AbstractRequestTest extends TestCase
         ResponseInterface $response,
         ?string $message = null
     ): void {
+        $stream = $response->getBody();
+        $stream->rewind();
+
         self::assertSame(
             $expectedBody,
-            $response->getBody()->getContents(),
+            $stream->getContents(),
             $message ?? ''
         );
     }
