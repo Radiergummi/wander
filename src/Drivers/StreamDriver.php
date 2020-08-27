@@ -29,7 +29,6 @@ use const FILTER_VALIDATE_IP;
 
 class StreamDriver extends AbstractDriver
 {
-
     /**
      * @inheritDoc
      * @throws InvalidArgumentException

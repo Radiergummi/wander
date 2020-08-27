@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 declare(strict_types=1);
 
@@ -89,13 +90,17 @@ class CurlDriver extends AbstractDriver
      * @inheritDoc
      * @throws InvalidArgumentException
      * @throws RuntimeException
+     * @noinspection CallableParameterUseCaseInTypeContextInspection
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
         $url = (string)$request->geturi();
 
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            throw new DriverException($request, "URL '{$url}' is not a valid URL");
+        if ( ! filter_var($url, FILTER_VALIDATE_URL)) {
+            throw new DriverException(
+                $request,
+                "URL '{$url}' is not a valid URL"
+            );
         }
 
         // Create a curl handle
@@ -117,28 +122,20 @@ class CurlDriver extends AbstractDriver
         // If we've got a body, append it to the request
         if (
             ($bodyLength = $request->getBody()->getSize()) > 0 &&
-            !Method::mayNotIncludeBody($request->getMethod())
+            ! Method::mayNotIncludeBody($request->getMethod())
         ) {
-
-            $options[CURLOPT_INFILE] = static::detach($request->getBody());
+            $options[CURLOPT_INFILE] = static::detach(
+                $request->getBody()
+            );
             $options[CURLOPT_INFILESIZE] = $bodyLength;
 
-            // CURLOPT_UPLOAD makes the request a streaming upload - and sets the
-            // request method to PUT as an unwanted side effect, so we'll need to
-            // set it below
+            // CURLOPT_UPLOAD makes the request a streaming upload - and sets
+            // the request method to PUT as an unwanted side effect, so we'll
+            // need to set it below
             $options[CURLOPT_UPLOAD] = true;
 
             // Set the Content-Length header, unless already configured
-            if (!$request->hasHeader(Header::CONTENT_LENGTH)) {
-                /**
-                 * This is necessary due to PHPStorm detecting--correctly so--that
-                 * the helper methods return a MessageInterface instance. I would
-                 * have wished they'd just annotated the methods with `@return $this`
-                 * or set the type to `: self`, but alas, PHP-FIG didn't, so we have
-                 * a false positive.
-                 *
-                 * @noinspection CallableParameterUseCaseInTypeContextInspection
-                 */
+            if ( ! $request->hasHeader(Header::CONTENT_LENGTH)) {
                 $request = $request->withHeader(
                     Header::CONTENT_LENGTH,
                     (string)$bodyLength
@@ -155,18 +152,19 @@ class CurlDriver extends AbstractDriver
                 $options[CURLOPT_POST] = true;
                 break;
 
-                /**
-                 * Theoretically, curl supports a PUT option (CURLOPT_PUT) for PUT
-                 * requests. The way its implemented, though, is incompatible with most
-                 * web servers: It sends an `Expect: 100 Continue` header before actually
-                 * submitting the request. To prevent this problem, PUT has been added to
-                 * the custom request block below, which works just fine.
-                 */
-                // case Method::PUT:
-                //     $options[CURLOPT_PUT] = true;
-                //     break;
+            /**
+             * Theoretically, curl supports a PUT option (CURLOPT_PUT) for PUT
+             * requests. The way its implemented, though, is incompatible with
+             * most web servers: It sends an `Expect: 100 Continue` header
+             * before actually submitting the request. To prevent this problem,
+             * PUT has been added to the custom request block below, which works
+             * just fine.
+             */
+            // case Method::PUT:
+            //     $options[CURLOPT_PUT] = true;
+            //     break;
 
-                // All other methods must use CURLOPT_CUSTOMREQUEST
+            // All other methods must use CURLOPT_CUSTOMREQUEST
             case Method::PUT:
             case Method::HEAD:
             case Method::DELETE:
@@ -192,7 +190,8 @@ class CurlDriver extends AbstractDriver
         $options[CURLOPT_HEADERFUNCTION] =
 
             /**
-             * The header function is run by curl to process the response headers
+             * The header function is run by curl to process the
+             * response headers.
              *
              * @param resource $handle
              * @param string   $header
@@ -200,7 +199,10 @@ class CurlDriver extends AbstractDriver
              * @return int
              * @see https://github.com/vimeo/psalm/issues/4033
              */
-            static function ($handle, string $header) use (&$responseHeaders): int {
+            static function (
+                $handle,
+                string $header
+            ) use (&$responseHeaders): int {
                 /** @var array<string,string[]> $responseHeaders */
 
                 $length = strlen($header);
@@ -212,7 +214,7 @@ class CurlDriver extends AbstractDriver
 
                 $name = strtolower(trim($parts[0]));
 
-                if (!isset($responseHeaders[$name])) {
+                if ( ! isset($responseHeaders[$name])) {
                     $responseHeaders[$name] = [];
                 }
 
@@ -231,7 +233,7 @@ class CurlDriver extends AbstractDriver
              * @return int
              * @see https://github.com/vimeo/psalm/issues/4033
              */
-            fn ($handle, string $chunk): int => $sink->write($chunk);
+            fn($handle, string $chunk): int => $sink->write($chunk);
 
         // Apply all curl options
         curl_setopt_array($handle, $options);
@@ -275,18 +277,18 @@ class CurlDriver extends AbstractDriver
         curl_close($handle);
 
         switch ($errorCode) {
-                // If the curl error code is 0 and the status does not indicate a server
-                // error, we're done
+            // If the curl error code is 0 and the status does not indicate a server
+            // error, we're done
             case 0:
                 return $response;
 
-                // DNS resolution problems can indicate several specific issues, so
-                // they have their own exception class
+            // DNS resolution problems can indicate several specific issues, so
+            // they have their own exception class
             case CURLE_COULDNT_RESOLVE_HOST:
                 throw new UnresolvableHostException($request->getUri());
 
-                // This group is for all connection errors, happening before we even
-                // receive an HTTP response from the server.
+            // This group is for all connection errors, happening before we even
+            // receive an HTTP response from the server.
             case CURLE_COULDNT_CONNECT:
             case CURLE_TOO_MANY_REDIRECTS:
             case CURLE_GOT_NOTHING:
@@ -299,7 +301,7 @@ class CurlDriver extends AbstractDriver
                     $errorCode
                 );
 
-                // This group is for all HTTPS errors relating to SSL certificates.
+            // This group is for all HTTPS errors relating to SSL certificates.
             case CURLE_SSL_CONNECT_ERROR:
             case CURLE_SSL_CACERT:
             case CURLE_SSL_CACERT_BADFILE:
@@ -315,8 +317,8 @@ class CurlDriver extends AbstractDriver
                     $errorCode
                 );
 
-                // We were unable to determine the exact error, so we'll throw a generic
-                // client error. This should probably not happen.
+            // We were unable to determine the exact error, so we'll throw a generic
+            // client error. This should probably not happen.
             default:
                 $message = sprintf(
                     "Request failed: Unknown curl error %d: %s",
