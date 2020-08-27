@@ -122,13 +122,24 @@ class StreamDriver extends AbstractDriver
         $statusLine = array_shift($responseHeaders);
 
         preg_match(
-            '{HTTP/([\d.]+)\S*\s(\d{3})\s(.+)}',
+            '{HTTP/([\d.]+)\S*\s(\d{3})(\s(.+))?}',
             $statusLine,
             $match
         );
 
         // The leading comma is deliberate, as we want to discard the full match
-        [, $protocolVersion, $statusCode, $reasonPhrase] = $match;
+        [, $protocolVersion, $statusCode, $reasonPhrase] = $match + [
+            null,
+            '',
+            '',
+            '',
+            '',
+            '',
+        ];
+
+        if ( ! $reasonPhrase) {
+            $reasonPhrase = Status::getMessage((int)$statusCode);
+        }
 
         $response = $this
             ->getResponseFactory()
