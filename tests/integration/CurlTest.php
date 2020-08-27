@@ -10,8 +10,8 @@ use Radiergummi\Wander\Interfaces\DriverInterface;
 class CurlTest extends AbstractRequestTest
 {
     use GetTrait;
-
-    protected static string $serverListenAddress = '127.0.0.1:9998';
+    use PostTrait;
+    use ErrorHandlingTrait;
 
     protected function getDriver(): DriverInterface
     {

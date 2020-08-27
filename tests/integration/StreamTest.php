@@ -10,6 +10,8 @@ use Radiergummi\Wander\Interfaces\DriverInterface;
 class StreamTest extends AbstractRequestTest
 {
     use GetTrait;
+    use PostTrait;
+    use ErrorHandlingTrait;
 
     protected function getDriver(): DriverInterface
     {

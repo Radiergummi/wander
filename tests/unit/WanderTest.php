@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -7,13 +8,13 @@ namespace Radiergummi\Wander\Tests\Unit;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\MockObject\MockObject;
-use Radiergummi\Wander\Context;
-use Radiergummi\Wander\Interfaces\HttpClientInterface;
-use Radiergummi\Wander\Wander;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use Radiergummi\Wander\Context;
 use Radiergummi\Wander\Exceptions\ResponseErrorException;
 use Radiergummi\Wander\Interfaces\DriverInterface;
+use Radiergummi\Wander\Interfaces\HttpClientInterface;
+use Radiergummi\Wander\Wander;
 
 class WanderTest extends TestCase
 {
@@ -27,35 +28,42 @@ class WanderTest extends TestCase
 
     public function testCreatesInstancesWithDriver(): void
     {
-        $driver = $this->createMockDriver();
-        $wander = new Wander($driver);
+        /** @var MockObject&DriverInterface $mockDriver */
+        $mockDriver = $this->createMockDriver();
+        $wander = new Wander($mockDriver);
 
         $this->assertInstanceOf(Wander::class, $wander);
         $this->assertInstanceOf(HttpClientInterface::class, $wander);
-        $this->assertSame($wander->getDriver(), $driver);
+        $this->assertSame($wander->getDriver(), $mockDriver);
     }
 
     public function testCreatesInstancesWithRequestFactory(): void
     {
-        $driver = $this->createMockDriver();
+        /** @var MockObject&DriverInterface $mockDriver */
+        $mockDriver = $this->createMockDriver();
         $requestFactory = new Psr17Factory();
-        $wander = new Wander($driver, $requestFactory);
+        $wander = new Wander($mockDriver, $requestFactory);
 
         $this->assertInstanceOf(Wander::class, $wander);
         $this->assertInstanceOf(HttpClientInterface::class, $wander);
-        $this->assertSame($wander->getDriver(), $driver);
+        $this->assertSame($wander->getDriver(), $mockDriver);
         $this->assertSame($wander->getRequestFactory(), $requestFactory);
     }
 
     public function testCreatesInstancesWithResponseFactory(): void
     {
-        $driver = $this->createMockDriver();
+        /** @var MockObject&DriverInterface $mockDriver */
+        $mockDriver = $this->createMockDriver();
         $requestFactory = $responseFactory = new Psr17Factory();
-        $wander = new Wander($driver, $requestFactory, $responseFactory);
+        $wander = new Wander(
+            $mockDriver,
+            $requestFactory,
+            $responseFactory
+        );
 
         $this->assertInstanceOf(Wander::class, $wander);
         $this->assertInstanceOf(HttpClientInterface::class, $wander);
-        $this->assertSame($wander->getDriver(), $driver);
+        $this->assertSame($wander->getDriver(), $mockDriver);
         $this->assertSame($wander->getRequestFactory(), $requestFactory);
         $this->assertSame($wander->getResponseFactory(), $responseFactory);
     }
@@ -95,9 +103,12 @@ class WanderTest extends TestCase
     public function testCreatesPostContextsWithBody(): void
     {
         $wander = new Wander();
-        $context = $wander->post('https://example.com', [
-            'foo' => 'bar'
-        ]);
+        $context = $wander->post(
+            'https://example.com',
+            [
+                'foo' => 'bar',
+            ]
+        );
 
         $this->assertInstanceOf(Context::class, $context);
         $this->assertTrue($context->hasBody());
@@ -114,9 +125,12 @@ class WanderTest extends TestCase
     public function testCreatesPutContextsWithBody(): void
     {
         $wander = new Wander();
-        $context = $wander->put('https://example.com', [
-            'foo' => 'bar'
-        ]);
+        $context = $wander->put(
+            'https://example.com',
+            [
+                'foo' => 'bar',
+            ]
+        );
 
         $this->assertInstanceOf(Context::class, $context);
         $this->assertTrue($context->hasBody());
@@ -133,9 +147,12 @@ class WanderTest extends TestCase
     public function testCreatesPatchContextsWithBody(): void
     {
         $wander = new Wander();
-        $context = $wander->patch('https://example.com', [
-            'foo' => 'bar'
-        ]);
+        $context = $wander->patch(
+            'https://example.com',
+            [
+                'foo' => 'bar',
+            ]
+        );
 
         $this->assertInstanceOf(Context::class, $context);
         $this->assertTrue($context->hasBody());
@@ -152,7 +169,10 @@ class WanderTest extends TestCase
     public function testCreatesCustomContexts(): void
     {
         $wander = new Wander();
-        $context = $wander->createContext('test', 'https://example.com');
+        $context = $wander->createContext(
+            'test',
+            'https://example.com'
+        );
 
         $this->assertInstanceOf(Context::class, $context);
     }
@@ -161,18 +181,25 @@ class WanderTest extends TestCase
     {
         $wander = new Wander();
         $requestFactory = new Psr17Factory();
-        $request = $requestFactory->createRequest('test', 'https://example.com');
+        $request = $requestFactory->createRequest(
+            'test',
+            'https://example.com'
+        );
         $context = $wander->createContextFromRequest($request);
 
         $this->assertInstanceOf(Context::class, $context);
     }
 
-    public function testExecutesRequests()
+    public function testExecutesRequests(): void
     {
+        /** @var MockObject&DriverInterface $mockDriver */
         $mockDriver = $this->createMockDriver();
         $wander = new Wander($mockDriver);
         $requestFactory = new Psr17Factory();
-        $request = $requestFactory->createRequest('test', 'https://example.com');
+        $request = $requestFactory->createRequest(
+            'test',
+            'https://example.com'
+        );
 
         $mockDriver
             ->method('sendRequest')
@@ -180,15 +207,22 @@ class WanderTest extends TestCase
 
         $response = $wander->request($request);
 
-        $this->assertInstanceOf(ResponseInterface::class, $response);
+        $this->assertInstanceOf(
+            ResponseInterface::class,
+            $response
+        );
     }
 
-    public function testThrowsResponseErrorForErrorStatus()
+    public function testThrowsResponseErrorForErrorStatus(): void
     {
+        /** @var MockObject&DriverInterface $mockDriver */
         $mockDriver = $this->createMockDriver();
         $wander = new Wander($mockDriver);
         $requestFactory = new Psr17Factory();
-        $request = $requestFactory->createRequest('test', 'https://example.com');
+        $request = $requestFactory->createRequest(
+            'test',
+            'https://example.com'
+        );
 
         $mockDriver
             ->method('sendRequest')
@@ -200,8 +234,6 @@ class WanderTest extends TestCase
 
     private function createMockDriver(): MockObject
     {
-        $mockDriver = $this->createMock(DriverInterface::class);
-
-        return $mockDriver;
+        return $this->createMock(DriverInterface::class);
     }
 }

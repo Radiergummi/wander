@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -9,6 +10,10 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
+
+use function json_decode;
+
+use const JSON_THROW_ON_ERROR;
 
 trait GetTrait
 {
@@ -30,7 +35,9 @@ trait GetTrait
         $response = $client->request($request);
         $responseBody = json_decode(
             $response->getBody()->getContents(),
-            true
+            true,
+            512,
+            JSON_THROW_ON_ERROR
         );
 
         $this->assertStatusCodeOk($response);
@@ -53,24 +60,32 @@ trait GetTrait
         $response = $client->request($request);
         $responseBody = json_decode(
             $response->getBody()->getContents(),
-            true
+            true,
+            512,
+            JSON_THROW_ON_ERROR
         );
 
         $this->assertStatusCodeOk($response);
         $this->assertSame('/loopback', $responseBody['uri']);
-        $this->assertSame(['foo' => 'bar'], $responseBody['query']);
+        $this->assertSame(
+            ['foo' => 'bar'],
+            $responseBody['query']
+        );
     }
 
     public function testGetRequestIsSentWithoutBody(): void
     {
         $client = $this->getClient();
         $uri = $this->getTestServerUri()->withPath('/loopback');
-        $request = $this->createRequest(Method::GET, $uri)
+        $request = $this
+            ->createRequest(Method::GET, $uri)
             ->withBody(Stream::create('test'));
         $response = $client->request($request);
         $responseBody = json_decode(
             $response->getBody()->getContents(),
-            true
+            true,
+            512,
+            JSON_THROW_ON_ERROR
         );
 
         $this->assertStatusCodeOk($response);

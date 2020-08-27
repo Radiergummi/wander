@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 
 declare(strict_types=1);
 
@@ -6,19 +7,16 @@ namespace Radiergummi\Wander\Tests\Unit;
 
 use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Uri;
-use PHPUnit\Framework\MockObject\MockObject;
-use Radiergummi\Wander\Context;
-use Radiergummi\Wander\Wander;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
+use Radiergummi\Wander\Context;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
+
+use function base64_encode;
 
 class ContextTest extends TestCase
 {
-    /**
-     * @var HttpClientInterface&MockObject
-     */
-    private $client;
+    private HttpClientInterface $client;
 
     private RequestInterface $request;
 
@@ -114,19 +112,24 @@ class ContextTest extends TestCase
         $this->assertSame([], $this->context->getQueryParameters());
         $this->context->withQueryString('foo=bar&baz=quz');
         $this->assertSame('foo=bar&baz=quz', $this->context->getQueryString());
-        $this->assertSame([
-            'foo' => 'bar',
-            'baz' => 'quz'
-        ], $this->context->getQueryParameters());
+        $this->assertSame(
+            [
+                'foo' => 'bar',
+                'baz' => 'quz',
+            ],
+            $this->context->getQueryParameters()
+        );
     }
 
     public function testSetsQueryParametersOnQueryString(): void
     {
         $this->assertSame([], $this->context->getQueryParameters());
-        $this->context->withQueryParameters([
-            'foo' => 'bar',
-            'baz' => 'quz'
-        ]);
+        $this->context->withQueryParameters(
+            [
+                'foo' => 'bar',
+                'baz' => 'quz',
+            ]
+        );
         $this->assertSame('foo=bar&baz=quz', $this->context->getQueryString());
         $this->assertSame('foo=bar&baz=quz', $this->context->getUri()->getQuery());
     }
@@ -139,14 +142,14 @@ class ContextTest extends TestCase
 
     public function testRetrievesQueryParameterByName(): void
     {
-        $this->assertSame(null, $this->context->getQueryParameter('foo'));
+        $this->assertNull($this->context->getQueryParameter('foo'));
         $this->context->withQueryParameter('foo', 'bar');
         $this->assertSame('bar', $this->context->getQueryParameter('foo'));
     }
 
     public function testReturnsNullForMissingParameters(): void
     {
-        $this->assertSame(null, $this->context->getQueryParameter('foo'));
+        $this->assertNull($this->context->getQueryParameter('foo'));
     }
 
     public function testSetsStringQueryParameter(): void
@@ -184,7 +187,7 @@ class ContextTest extends TestCase
     public function testSetsNullQueryParameter(): void
     {
         $this->context->withQueryParameter('foo', null);
-        $this->assertSame(null, $this->context->getQueryParameter('foo'));
+        $this->assertNull($this->context->getQueryParameter('foo'));
         $this->assertSame([], $this->context->getQueryParameters());
         $this->assertSame('', $this->context->getQueryString());
     }
@@ -207,7 +210,7 @@ class ContextTest extends TestCase
         $this->context->withQueryParameter('foo', 'bar');
         $this->assertSame('bar', $this->context->getQueryParameter('foo'));
         $this->context->withoutQueryParameter('foo');
-        $this->assertSame(null, $this->context->getQueryParameter('foo'));
+        $this->assertNull($this->context->getQueryParameter('foo'));
     }
 
     public function testIgnoresMissingParametersOnRemovingQueryParameters(): void
@@ -395,7 +398,7 @@ class ContextTest extends TestCase
 
     public function testWithBearerAuthorizationIsChainable(): void
     {
-        $returnValue = $this->context->withBearerAuthorization('', '');
+        $returnValue = $this->context->withBearerAuthorization('');
         $this->assertSame($this->context, $returnValue);
     }
 
