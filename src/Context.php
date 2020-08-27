@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Radiergummi\Wander;
 
 use InvalidArgumentException;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -33,13 +34,14 @@ class Context
     /**
      * @param HttpClientInterface $client  HTTP client instance
      * @param RequestInterface    $request HTTP request to wrap
+     *
      * @internal
      */
     public function __construct(
         HttpClientInterface $client,
         RequestInterface $request
     ) {
-        $this->client = $client;
+        $this->client  = $client;
         $this->request = $request;
     }
 
@@ -527,11 +529,13 @@ class Context
      * @throws Exceptions\SslCertificateException
      * @throws Exceptions\UnresolvableHostException
      * @throws Exceptions\WanderException
+     * @throws InvalidArgumentException
+     * @throws ClientExceptionInterface
      */
     public function run(): ResponseInterface
     {
         // If we don't have a body, request right away
-        if (!$this->hasBody()) {
+        if ( ! $this->hasBody()) {
             return $this->client->request($this->request);
         }
 
@@ -553,10 +557,10 @@ class Context
 
         // Resolve the appropriate serializer by resolving the media
         // type from the current request instance.
-        $contentType = $this->getContentType();
+        $contentType         = $this->getContentType();
         $supportedMediaTypes = $this->client->getBodySerializers();
-        $serializerClass = $supportedMediaTypes[$contentType]
-            ?? PlainTextSerializer::class;
+        $serializerClass     = $supportedMediaTypes[$contentType]
+                               ?? PlainTextSerializer::class;
 
         // Create an instance of the serializer. I'm not quite happy
         // with this yet; I have a feeling we should already have an

@@ -41,9 +41,9 @@ abstract class AbstractDriver implements DriverInterface
      */
     protected static function detach(StreamInterface $stream)
     {
-        $stream = clone $stream;
+        $clone = clone $stream;
 
-        return $stream->detach();
+        return $clone->detach();
     }
 
     /**

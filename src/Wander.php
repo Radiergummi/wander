@@ -44,9 +44,9 @@ class Wander implements HttpClientInterface
      * @var array<string, class-string<Interfaces\SerializerInterface>>
      */
     protected array $bodySerializers = [
-        MediaType::APPLICATION_JSON => JsonSerializer::class,
-        MediaType::TEXT_PLAIN => PlainTextSerializer::class,
-        MediaType::APPLICATION_X_WWW_FORM_URLENCODED => UrlEncodedSerializer::class
+        MediaType::APPLICATION_JSON                  => JsonSerializer::class,
+        MediaType::TEXT_PLAIN                        => PlainTextSerializer::class,
+        MediaType::APPLICATION_X_WWW_FORM_URLENCODED => UrlEncodedSerializer::class,
     ];
 
     public function __construct(
@@ -109,6 +109,7 @@ class Wander implements HttpClientInterface
      *
      * @param string $mediaType
      * @param string $serializer
+     *
      * @psalm-param class-string<Interfaces\SerializerInterface> $serializer
      *
      * @return $this
