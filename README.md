@@ -6,8 +6,10 @@ Wander ![Build Status](https://api.travis-ci.org/Radiergummi/wander.svg?branch=m
 
 Introduction
 ------------
-Making HTTP requests in PHP is a pain. Either you go full-low-level mode and use streams or curl, or you'll need to use one of the existing choices with array-based
-configuration, lots of overhead, or missing PSR compatibility. Wander solves all of those.
+Making HTTP requests in PHP can be a pain. Either you go full-low-level mode and use streams or curl, or you'll need to use one of the existing choices with 
+array-based configuration, lots of overhead, or missing PSR compatibility. Wander attempts to provide an alternative: It doesn't try to solve every problem
+under the sun out of the box, but stay simple and extensible. Wander makes some sensible assumptions, but allows you to extend it if those assumptions turn out
+to be wrong for your use case.  
 
 ### Features
  - **Simple, discoverable API**
@@ -22,7 +24,7 @@ configuration, lots of overhead, or missing PSR compatibility. Wander solves all
    As drivers are, essentially, PSR-18 clients, you can swap in any other client library and make it work out of the box. This provides for a smooth migration path.
  - **Extensive exceptions**
    Wander throws several exceptions, all of which follow a clear inheritance structure. This makes it
-   exceptionally easy to handle errors as coarsly or fine-grained as necessary.
+   exceptionally easy to handle errors as coarsely or fine-grained as necessary.
 
 ```php
 $responseBody = (new Wander())
@@ -33,6 +35,8 @@ $responseBody = (new Wander())
         Header::ACCEPT => MediaType::APPLICATION_JSON,
     ])
     ->withoutHeader(Header::USER_AGENT)
+    ->withBody([ 'test' => true ])
+    ->asJson()
     ->run()
     ->getBody()
     ->getContents();
@@ -74,9 +78,9 @@ $response = $client
     ->run();
 ```
 
-This context being created here wraps around [PSR-7 requests](https://www.php-fig.org/psr/psr-7/) and adds a few helper methods, making it possible to chain the
-method calls. Doing so requires creating request instances, which of course relies on a [PSR-17 factory](https://www.php-fig.org/psr/psr-17/) you can swap out for
-your own. More on that below.
+This context created here wraps around [PSR-7 requests](https://www.php-fig.org/psr/psr-7/) and adds a few helper methods, making it possible to chain the 
+method calls. Doing so requires creating request instances, which of course relies on a [PSR-17 factory](https://www.php-fig.org/psr/psr-17/) you can swap out
+for your own. More on that below.
 
 ### Sending PSR-7 requests directly
 Wander also supports direct handling of request instances:
@@ -91,14 +95,13 @@ $response = $client->request($request);
 ```
 
 ### Using a custom driver
-Drivers are what actually handles dispatching requests and processing responses. They have one, simple responsibility: Transform a request instance into a response
-instance. By default, Wander uses a PHP stream driver.
+Drivers are what actually handles dispatching requests and processing responses. They have one, simple responsibility: Transform a request instance into a 
+response instance. By default, Wander uses a PHP stream driver.
 
 ### Exception handling
 Wander follows an exception hierarchy that represents different classes of errors.
-In contrary to PSR-18 clients, I firmly believe response status codes from the 400 or 500 range _should_ throw
-an exception, because you end up checking for them anyway. Exceptions are friends! Especially in thee case of
-HTTP, where an error be an expected part of the flow.
+In contrary to PSR-18 clients, I firmly believe response status codes from the 400 or 500 range _should_ throw an exception, because you end up checking for 
+them anyway. Exceptions are friends! Especially in thee case of HTTP, where an error could be an expected part of the flow.
 
 The exception tree looks as follows:
 ```
@@ -336,10 +339,6 @@ request(RequestInterface $request): ResponseInterface
 | Parameter  | Type                      | Required | Description          |
 |:-----------|:--------------------------|:---------|:---------------------|
 | `$request` | `RequestInterface`        | Yes      | Request to dispatch. |
-
-
-
-
 
 ### Context: Request context
 The context object performs transformations on an underlying request instance. In spirit with PSR-7, the request
