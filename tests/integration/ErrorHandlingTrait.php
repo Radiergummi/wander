@@ -5,9 +5,11 @@ declare(strict_types=1);
 
 namespace Radiergummi\Wander\Tests\Integration;
 
+use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Uri;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
+use Radiergummi\Wander\Exceptions\DriverException;
 use Radiergummi\Wander\Exceptions\ResponseErrors\BadRequestException;
 use Radiergummi\Wander\Exceptions\ResponseErrors\ConflictException;
 use Radiergummi\Wander\Exceptions\ResponseErrors\ExpectationFailedException;
@@ -65,6 +67,67 @@ use Radiergummi\Wander\Interfaces\HttpClientInterface;
  */
 trait ErrorHandlingTrait
 {
+
+    public function testBailsOnEmptyUrl(): void
+    {
+        if (isset($this->skippedTests[__FUNCTION__])) {
+            $this->markTestSkipped($this->skippedTests[__FUNCTION__]);
+        }
+
+        $this->expectException(DriverException::class);
+
+        $request = new Request('GET', '');
+        $this->getClient()->request($request);
+    }
+
+    public function testBailsOnInvalidUrl(): void
+    {
+        if (isset($this->skippedTests[__FUNCTION__])) {
+            $this->markTestSkipped($this->skippedTests[__FUNCTION__]);
+        }
+
+        $this->expectException(DriverException::class);
+
+        $request = new Request('GET', 'foobar');
+        $this->getClient()->request($request);
+    }
+
+    public function testBailsOnRelativeUrl(): void
+    {
+        if (isset($this->skippedTests[__FUNCTION__])) {
+            $this->markTestSkipped($this->skippedTests[__FUNCTION__]);
+        }
+
+        $this->expectException(DriverException::class);
+
+        $request = new Request('GET', '/foobar');
+        $this->getClient()->request($request);
+    }
+
+    public function testBailsOnBrokenHostName(): void
+    {
+        if (isset($this->skippedTests[__FUNCTION__])) {
+            $this->markTestSkipped($this->skippedTests[__FUNCTION__]);
+        }
+
+        $this->expectException(DriverException::class);
+
+        $request = new Request('GET', 'https://foo bar');
+        $this->getClient()->request($request);
+    }
+
+    public function testBailsOnMissingProtocol(): void
+    {
+        if (isset($this->skippedTests[__FUNCTION__])) {
+            $this->markTestSkipped($this->skippedTests[__FUNCTION__]);
+        }
+
+        $this->expectException(DriverException::class);
+
+        $request = new Request('GET', 'example.com');
+        $this->getClient()->request($request);
+    }
+
     public function testThrowsUnresolvableHostException(): void
     {
         if (isset($this->skippedTests[__FUNCTION__])) {
