@@ -94,10 +94,6 @@ $request = new Request(Method::GET, 'https://example.com');
 $response = $client->request($request);
 ```
 
-### Using a custom driver
-Drivers are what actually handles dispatching requests and processing responses. They have one, simple responsibility: Transform a request instance into a 
-response instance. By default, Wander uses a PHP stream driver.
-
 ### Exception handling
 Wander follows an exception hierarchy that represents different classes of errors.
 In contrary to PSR-18 clients, I firmly believe response status codes from the 400 or 500 range _should_ throw an exception, because you end up checking for 
@@ -189,6 +185,78 @@ try {
 }
 ```
 This was just one of a myriad of ways to handle errors with these kinds of exceptions!
+
+### Setting a request timeout
+Request timeouts can be configured on your driver instance:
+```php
+$driver = new StreamDriver();
+$driver->setTimeout(3000); // 3000ms / 3s
+
+$client = new Wander($driver);
+```
+
+> **Note:**  
+> Request timeouts are an optional feature for drivers, indicated by the [`SupportsTimeoutsInterface`](./src/Interfaces/Features/SupportsTimeoutsInterface.php).
+> All default drivers implement this interface, though, so you'll only need to check this if you use another implementation.
+
+### Disable following redirects
+By default, drivers will follow redirects. If you want to disable this behavior, configure it on your driver instance:
+```php
+$driver = new StreamDriver();
+$driver->followRedirects(false);
+
+$client = new Wander($driver);
+```
+
+> **Note:**  
+> Redirects are an optional feature for drivers, indicated by the [`SupportsRedirectsInterface`](./src/Interfaces/Features/SupportsRedirectsInterface.php).
+> All default drivers implement this interface, though, so you'll only need to check this if you use another implementation.
+
+### Limiting the maximum number of redirects
+By default, drivers will follow redirect indefinitely. If you want to limit the maximum number of redirects, configure it on your driver instance:
+```php
+$driver = new StreamDriver();
+$driver->setMaximumRedirects(3);
+
+$client = new Wander($driver);
+```
+
+> **Note:**  
+> Redirects are an optional feature for drivers, indicated by the [`SupportsRedirectsInterface`](./src/Interfaces/Features/SupportsRedirectsInterface.php).
+> All default drivers implement this interface, though, so you'll only need to check this if you use another implementation.
+
+### Adding a body serializer
+Wander supports so-called serializers: Classes that take a request and some data and apply it to the request. This approach moves serialization logic into the 
+client and makes it completely transparent, as the context applies the serialization just before passing the request to the driver. Out of the box, Wander ships
+with serializers for plain text, JSON, XML, form data, and multipart bodies. If you would like to use another serialization format, or modify one of the 
+existing serializers, you can add it to the client instance like so:
+```php
+$client = new Wander();
+$client->addBodySerializer('your/media-type', YourSerializer::class);
+```
+
+For any request with the content type `your/media-type`, an instance of `YourSerializer` will be created and used to apply the body to the request.
+
+### Using a custom driver
+Drivers are what actually handles dispatching requests and processing responses. They have one, simple responsibility: Transform a request instance into a 
+response instance. By default, Wander uses a driver that wraps streams, but it also ships with a curl driver. If you need something else, or require a variation
+of one of the default drivers, you can either create a new driver implementing the [`DriverInterface`](./src/Interfaces/DriverInterface.php) or extend one of 
+the defaults.
+```php
+$driver = new class implements DriverInterface {
+    public function sendRequest(RequestInterface $request): ResponseInterface
+    {
+      // TODO: Implement sendRequest() method.
+    }
+    
+    public function setResponseFactory(ResponseFactoryInterface $responseFactory): void
+    {
+      // TODO: Implement setResponseFactory() method.
+    }
+};
+
+$client = new Wander($driver);
+```
 
 Reference
 ---------
