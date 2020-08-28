@@ -10,7 +10,9 @@ use Nyholm\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Radiergummi\Wander\Context;
+use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
+use Radiergummi\Wander\Serializers\JsonSerializer;
 
 use function base64_encode;
 
@@ -381,19 +383,28 @@ class ContextTest extends TestCase
     {
         $this->context->withBasicAuthorization('foo', 'bar');
         $encoded = base64_encode("foo:bar");
-        $this->assertSame("Basic {$encoded}", $this->context->getHeaderLine('Authorization'));
+        $this->assertSame(
+            "Basic {$encoded}",
+            $this->context->getHeaderLine('Authorization')
+        );
     }
 
     public function testWithBasicAuthorizationIsChainable(): void
     {
-        $returnValue = $this->context->withBasicAuthorization('', '');
+        $returnValue = $this->context->withBasicAuthorization(
+            '',
+            ''
+        );
         $this->assertSame($this->context, $returnValue);
     }
 
     public function testAddsBearerAuthorization(): void
     {
         $this->context->withBearerAuthorization('foo');
-        $this->assertSame('Bearer foo', $this->context->getHeaderLine('Authorization'));
+        $this->assertSame(
+            'Bearer foo',
+            $this->context->getHeaderLine('Authorization')
+        );
     }
 
     public function testWithBearerAuthorizationIsChainable(): void
@@ -405,7 +416,38 @@ class ContextTest extends TestCase
     public function testAddsContentTypeHeader(): void
     {
         $this->context->withContentType('foo');
-        $this->assertSame('foo', $this->context->getHeaderLine('Content-Type'));
+        $this->assertSame(
+            'foo',
+            $this->context->getHeaderLine('Content-Type')
+        );
+    }
+
+    public function testRetrievesContentTypeHeader(): void
+    {
+        $this->assertNull($this->context->getContentType());
+        $this->context->withContentType('foo/bar');
+        $this->assertSame(
+            'foo/bar',
+            $this->context->getContentType()
+        );
+    }
+
+    public function testRetrievesContentTypeHeaderWithoutEncoding(): void
+    {
+        $this->assertNull($this->context->getContentType());
+        $this->context->withContentType(
+            'application/json; charset=utf-8'
+        );
+
+        $this->assertSame(
+            'application/json; charset=utf-8',
+            $this->context->getContentType()
+        );
+
+        $this->assertSame(
+            'application/json',
+            $this->context->getContentType(true)
+        );
     }
 
     public function testWithContentTypeIsChainable(): void
@@ -417,7 +459,10 @@ class ContextTest extends TestCase
     public function testAddsJsonContentTypeHeader(): void
     {
         $this->context->asJson();
-        $this->assertSame('application/json', $this->context->getHeaderLine('Content-Type'));
+        $this->assertSame(
+            'application/json',
+            $this->context->getHeaderLine('Content-Type')
+        );
     }
 
     public function testAsJsonIsChainable(): void
@@ -452,6 +497,40 @@ class ContextTest extends TestCase
 
     public function testAddsBody(): void
     {
+        $this->assertFalse($this->context->hasBody());
+        $this->context->withBody('foo');
+        $this->assertTrue($this->context->hasBody());
+    }
+
+    public function testRetrievesBody(): void
+    {
+        $this->assertNull($this->context->getBody());
+        $this->context->withBody('foo');
+        $this->assertSame('foo', $this->context->getBody());
+    }
+
+    public function testBodyIsSerializedOnDispatch(): void
+    {
+        $this->context->withBody('foo');
+        $this->context->withContentType(MediaType::APPLICATION_JSON);
+        $this->context->run();
+        $this->assertSame(
+            '"foo"',
+            (string)$this->context->getRequest()->getBody()
+        );
+    }
+
+    public function testBodySerializerIsResolvedWithoutEncoding(): void
+    {
+        $this->context->withBody('foo');
+        $this->context->withContentType(
+            'application/json; charset=utf-8'
+        );
+        $this->context->run();
+        $this->assertSame(
+            '"foo"',
+            (string)$this->context->getRequest()->getBody()
+        );
     }
 
     public function testWithBodyIsChainable(): void
@@ -471,6 +550,10 @@ class ContextTest extends TestCase
     protected function setUp(): void
     {
         $this->client = $this->createMock(HttpClientInterface::class);
+        $this->client->method('getBodySerializers')->willReturn([
+            MediaType::APPLICATION_JSON => JsonSerializer::class,
+        ]);
+
         $this->request = new Request('GET', 'https://example.com');
         $this->context = new Context($this->client, $this->request);
     }

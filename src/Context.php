@@ -19,6 +19,7 @@ use Radiergummi\Wander\Serializers\PlainTextSerializer;
 use function base64_encode;
 use function http_build_query;
 use function parse_str;
+use function strtok;
 
 class Context
 {
@@ -434,11 +435,24 @@ class Context
      * Retrieves the current content type.
      * If none is set, null will be returned.
      *
+     * @param bool $omitEncoding Whether to omit any eventual encoding added to
+     *                           the content type
+     *
      * @return string|null
      */
-    public function getContentType(): ?string
+    public function getContentType(bool $omitEncoding = false): ?string
     {
-        return $this->getHeaderLine(Header::CONTENT_TYPE) ?: null;
+        $mediaType = $this->getHeaderLine(Header::CONTENT_TYPE) ?: null;
+
+        if ( ! $mediaType) {
+            return null;
+        }
+
+        if ( ! $omitEncoding) {
+            return $mediaType;
+        }
+
+        return trim(strtok($mediaType, ';'));
     }
 
     /**
@@ -557,7 +571,7 @@ class Context
 
         // Resolve the appropriate serializer by resolving the media
         // type from the current request instance.
-        $contentType         = $this->getContentType();
+        $contentType = $this->getContentType(true);
         $supportedMediaTypes = $this->client->getBodySerializers();
         $serializerClass     = $supportedMediaTypes[$contentType]
                                ?? PlainTextSerializer::class;
