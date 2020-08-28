@@ -67,7 +67,6 @@ use Radiergummi\Wander\Interfaces\HttpClientInterface;
  */
 trait ErrorHandlingTrait
 {
-
     public function testBailsOnEmptyUrl(): void
     {
         if (isset($this->skippedTests[__FUNCTION__])) {
