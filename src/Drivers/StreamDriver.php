@@ -85,7 +85,7 @@ class StreamDriver extends AbstractDriver implements SupportsTimeoutsInterface,
         // does not support higher precision. See also:
         // https://www.php.net/manual/de/context.http.php#context.http.timeout
         if ($this->timeout) {
-            $options['timeout'] = $this->timeout * 1000;
+            $options['timeout'] = $this->timeout / 1000;
         }
 
         // If we've got a body, append it to the request
