@@ -10,6 +10,8 @@ use Psr\Http\Message\RequestInterface;
 use Radiergummi\Wander\Interfaces\SerializerInterface;
 
 use function http_build_query;
+use function is_array;
+use function is_object;
 
 class UrlEncodedSerializer implements SerializerInterface
 {
@@ -20,11 +22,16 @@ class UrlEncodedSerializer implements SerializerInterface
      * @param mixed            $body
      *
      * @return RequestInterface
+     * @throws InvalidArgumentException
      */
-    public function applyBody(RequestInterface $request, $body): RequestInterface
-    {
-        if (!is_array($body) && !is_object($body)) {
-            throw new InvalidArgumentException('Only arrays or objects may be URL encoded');
+    public function applyBody(
+        RequestInterface $request,
+        $body
+    ): RequestInterface {
+        if ( ! is_array($body) && ! is_object($body)) {
+            throw new InvalidArgumentException(
+                'Only arrays or objects may be URL encoded'
+            );
         }
 
         $encoded = http_build_query($body);

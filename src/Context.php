@@ -20,6 +20,7 @@ use function base64_encode;
 use function http_build_query;
 use function parse_str;
 use function strtok;
+use function trim;
 
 class Context
 {

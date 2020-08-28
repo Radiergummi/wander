@@ -22,10 +22,14 @@ use function dns_get_record;
 use function explode;
 use function file_get_contents;
 use function filter_var;
+use function preg_match;
+use function stream_context_create;
+use function trim;
 
 use const DNS_A;
 use const DNS_AAAA;
 use const FILTER_VALIDATE_IP;
+use const FILTER_VALIDATE_URL;
 
 class StreamDriver extends AbstractDriver
 {
@@ -56,12 +60,11 @@ class StreamDriver extends AbstractDriver
         }
 
         $options = [
-            'http' => [
-                'ignore_errors'    => true,
-                'protocol_version' => $request->getProtocolVersion(),
-                'method'           => $request->getMethod(),
-                'user_agent'       => Wander::USER_AGENT,
-            ],
+            'ignore_errors'    => true,
+            'protocol_version' => $request->getProtocolVersion(),
+            'method'           => $request->getMethod(),
+            'user_agent'       => Wander::USER_AGENT,
+            'follow_location'  => (int)$this->followRedirects,
         ];
 
         // If we've got a body, append it to the request
@@ -70,7 +73,7 @@ class StreamDriver extends AbstractDriver
             ! Method::mayNotIncludeBody($request->getMethod())
         ) {
             $body = $request->getBody();
-            $options['http']['content'] = (string)$body;
+            $options['content'] = (string)$body;
 
             // Set the Content-Length header, unless already configured
             if ( ! $request->hasHeader(Header::CONTENT_LENGTH)) {
@@ -90,11 +93,13 @@ class StreamDriver extends AbstractDriver
         }
 
         // Set all request headers
-        $options['http']['header'] = static::marshalHeaders(
+        $options['header'] = static::marshalHeaders(
             $request->getHeaders()
         );
 
-        $context = stream_context_create($options);
+        $context = stream_context_create([
+            'http' => $options,
+        ]);
         $sink = Stream::create();
         $responseBody = file_get_contents(
             $url,
@@ -119,6 +124,8 @@ class StreamDriver extends AbstractDriver
 
         $statusLine = array_shift($responseHeaders);
 
+        // Matches a usual HTTP status line, with the status message being
+        // optional.
         preg_match(
             '{HTTP/([\d.]+)\S*\s(\d{3})(\s(.+))?}',
             $statusLine,

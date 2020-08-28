@@ -20,6 +20,7 @@ use Radiergummi\Wander\Http\Status;
 use RuntimeException;
 use UnexpectedValueException;
 
+use function constant;
 use function count;
 use function curl_close;
 use function curl_errno;
@@ -28,13 +29,18 @@ use function curl_exec;
 use function curl_getinfo;
 use function curl_init;
 use function curl_setopt_array;
+use function defined;
 use function explode;
+use function filter_var;
 use function sprintf;
 use function strlen;
 use function strtolower;
 use function trim;
 
+use const CURL_HTTP_VERSION_1_0;
+use const CURL_HTTP_VERSION_1_1;
 use const CURL_HTTP_VERSION_2_0;
+use const CURL_HTTP_VERSION_NONE;
 use const CURLE_COULDNT_CONNECT;
 use const CURLE_COULDNT_RESOLVE_HOST;
 use const CURLE_FAILED_INIT;
@@ -54,16 +60,21 @@ use const CURLE_TOO_MANY_REDIRECTS;
 use const CURLINFO_HTTP_CODE;
 use const CURLOPT_CUSTOMREQUEST;
 use const CURLOPT_FAILONERROR;
+use const CURLOPT_FOLLOWLOCATION;
 use const CURLOPT_HEADERFUNCTION;
 use const CURLOPT_HTTP200ALIASES;
+use const CURLOPT_HTTP_VERSION;
 use const CURLOPT_HTTPHEADER;
 use const CURLOPT_INFILE;
 use const CURLOPT_INFILESIZE;
+use const CURLOPT_MAXREDIRS;
 use const CURLOPT_POST;
 use const CURLOPT_RETURNTRANSFER;
+use const CURLOPT_TIMEOUT_MS;
 use const CURLOPT_UPLOAD;
 use const CURLOPT_URL;
 use const CURLOPT_WRITEFUNCTION;
+use const FILTER_VALIDATE_URL;
 
 /**
  * Curl Driver
@@ -91,6 +102,7 @@ class CurlDriver extends AbstractDriver
      * @throws InvalidArgumentException
      * @throws RuntimeException
      * @noinspection CallableParameterUseCaseInTypeContextInspection
+     * @noinspection PhpUnusedParameterInspection
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
@@ -277,8 +289,8 @@ class CurlDriver extends AbstractDriver
         curl_close($handle);
 
         switch ($errorCode) {
-            // If the curl error code is 0 and the status does not indicate a server
-            // error, we're done
+            // If the curl error code is 0 and the status does not indicate a
+            // request error, we're done
             case 0:
                 return $response;
 
@@ -317,8 +329,8 @@ class CurlDriver extends AbstractDriver
                     $errorCode
                 );
 
-            // We were unable to determine the exact error, so we'll throw a generic
-            // client error. This should probably not happen.
+            // We were unable to determine the exact error, so we'll throw a
+            // generic client error. This should probably not happen.
             default:
                 $message = sprintf(
                     "Request failed: Unknown curl error %d: %s",
@@ -330,7 +342,12 @@ class CurlDriver extends AbstractDriver
         }
     }
 
-    protected function getDefaultOptions(): ?array
+    /**
+     * Retrieves the default curl options as configured by the user.
+     *
+     * @return array|null
+     */
+    public function getDefaultOptions(): ?array
     {
         return $this->defaultOptions;
     }

@@ -474,7 +474,10 @@ class ContextTest extends TestCase
     public function testAddsXmlContentTypeHeader(): void
     {
         $this->context->asXml();
-        $this->assertSame('text/xml', $this->context->getHeaderLine('Content-Type'));
+        $this->assertSame(
+            'text/xml',
+            $this->context->getHeaderLine('Content-Type')
+        );
     }
 
     public function testAsXmlIsChainable(): void
@@ -486,7 +489,10 @@ class ContextTest extends TestCase
     public function testAddsPlainTextContentTypeHeader(): void
     {
         $this->context->asPlainText();
-        $this->assertSame('text/plain', $this->context->getHeaderLine('Content-Type'));
+        $this->assertSame(
+            'text/plain',
+            $this->context->getHeaderLine('Content-Type')
+        );
     }
 
     public function testAsPlainTextIsChainable(): void
@@ -512,7 +518,9 @@ class ContextTest extends TestCase
     public function testBodyIsSerializedOnDispatch(): void
     {
         $this->context->withBody('foo');
-        $this->context->withContentType(MediaType::APPLICATION_JSON);
+        $this->context->withContentType(
+            MediaType::APPLICATION_JSON
+        );
         $this->context->run();
         $this->assertSame(
             '"foo"',
@@ -549,12 +557,17 @@ class ContextTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->client = $this->createMock(HttpClientInterface::class);
+        $this->client = $this->createMock(
+            HttpClientInterface::class
+        );
         $this->client->method('getBodySerializers')->willReturn([
             MediaType::APPLICATION_JSON => JsonSerializer::class,
         ]);
 
         $this->request = new Request('GET', 'https://example.com');
-        $this->context = new Context($this->client, $this->request);
+        $this->context = new Context(
+            $this->client,
+            $this->request
+        );
     }
 }
