@@ -28,13 +28,15 @@ class Context
     protected RequestInterface $request;
 
     /**
+     * Holds unserialized request body data.
+     *
      * @var mixed|null
      */
     protected $body = null;
 
     /**
-     * @param HttpClientInterface $client  HTTP client instance
-     * @param RequestInterface    $request HTTP request to wrap
+     * @param HttpClientInterface $client  HTTP client instance.
+     * @param RequestInterface    $request HTTP request to wrap.
      *
      * @internal
      */
@@ -42,14 +44,14 @@ class Context
         HttpClientInterface $client,
         RequestInterface $request
     ) {
-        $this->client  = $client;
+        $this->client = $client;
         $this->request = $request;
     }
 
     /**
-     * Allows to override the request instance
+     * Allows to override the request instance.
      *
-     * @param RequestInterface $request
+     * @param RequestInterface $request New request instance.
      */
     public function setRequest(RequestInterface $request): void
     {
@@ -57,9 +59,9 @@ class Context
     }
 
     /**
-     * Retrieves the current request instance
+     * Retrieves the current request instance.
      *
-     * @return RequestInterface
+     * @return RequestInterface Current request instance.
      */
     public function getRequest(): RequestInterface
     {
@@ -67,12 +69,13 @@ class Context
     }
 
     /**
-     * Sets the HTTP request method
+     * Sets the HTTP request method. Note that all non-empty strings are valid
+     * request methods.
      *
-     * @param string $method
+     * @param string $method Request method to use.
      *
      * @return $this
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException For invalid request methods.
      */
     public function withMethod(string $method): self
     {
@@ -82,7 +85,7 @@ class Context
     }
 
     /**
-     * Retrieves the HTTP request method
+     * Retrieves the HTTP request method.
      *
      * @return string
      */
@@ -92,7 +95,7 @@ class Context
     }
 
     /**
-     * Sets the request URI
+     * Sets the request URI.
      *
      * @param UriInterface $uri
      * @param bool         $preserveHost
@@ -110,7 +113,7 @@ class Context
     }
 
     /**
-     * Retrieves the request URI
+     * Retrieves the request URI.
      *
      * @return UriInterface
      */
@@ -120,7 +123,7 @@ class Context
     }
 
     /**
-     * Sets the query string
+     * Sets the query string.
      *
      * @param string $queryString
      *
@@ -135,7 +138,7 @@ class Context
     }
 
     /**
-     * Retrieves the query string
+     * Retrieves the query string.
      *
      * @return string
      */
@@ -145,24 +148,30 @@ class Context
     }
 
     /**
-     * Sets all query parameters on the request URI
+     * Sets all query parameters on the request URI.
      *
-     * @param array<array-key, string|int|float|bool|null> $queryParameters
+     * @param mixed[] $queryParameters Query parameters as a dictionary.
+     *
+     * @psalm-param array<array-key, scalar> $queryParameters
      *
      * @return $this
      * @throws InvalidArgumentException
      */
     public function withQueryParameters(array $queryParameters): self
     {
-        $queryString = $this->encodeQueryParameters($queryParameters);
+        $queryString = $this->encodeQueryParameters(
+            $queryParameters
+        );
 
         return $this->withQueryString($queryString);
     }
 
     /**
-     * Retrieves all query parameters
+     * Retrieves all query parameters as a dictionary.
      *
-     * @return array<array-key, string>
+     * @return string[]
+     *
+     * @psalm-return array<array-key, string>
      */
     public function getQueryParameters(): array
     {
@@ -172,10 +181,13 @@ class Context
     }
 
     /**
-     * Sets a single query parameter
+     * Sets a single query parameter.
      *
-     * @param string                     $name
-     * @param string|int|float|bool|null $value
+     * @param string $name  Name of the query parameter to set.
+     * @param mixed  $value Value of the query parameter. Must be scalar or able
+     *                      to convert to a string.
+     *
+     * @psalm-param scalar $value
      *
      * @return $this
      * @throws InvalidArgumentException
@@ -185,16 +197,17 @@ class Context
         $queryParameters = $this->getQueryParameters();
 
         // Set the new parameter value. We _could_ handle appending parameters
-        // multiple times here, as in, creating an array for any existing parameter.
+        // multiple times here, as in, creating an array for any existing
+        // parameter.
         $queryParameters[$name] = $value;
 
         return $this->withQueryParameters($queryParameters);
     }
 
     /**
-     * Removes a single query parameter
+     * Removes a single query parameter by name.
      *
-     * @param string $name
+     * @param string $name Name of the parameter to remove.
      *
      * @return $this
      * @throws InvalidArgumentException
@@ -209,12 +222,13 @@ class Context
     }
 
     /**
-     * Retrieves a single query parameter by name
+     * Retrieves a single query parameter by name. If the query parameter does
+     * not exist in the query string yet, `NULL` will be returned.
      *
-     * @param string $name Name of the parameter to retrieve
+     * @param string $name Name of the parameter to retrieve.
      *
      * @return string|null Value of the parameter if it is set, `NULL`
-     *                     otherwise
+     *                     otherwise.
      */
     public function getQueryParameter(string $name): ?string
     {
@@ -226,13 +240,13 @@ class Context
     /**
      * Sets multiple headers at once.
      *
-     * @param array<string, string> $headers Headers as a dictionary of header names
-     *                                       to values
-     * @param bool                  $append  Whether to append values to pre-existing
-     *                                       headers
+     * @param array<string, string> $headers Headers as a dictionary of header
+     *                                       names to values.
+     * @param bool                  $append  Whether to append values to
+     *                                       pre-existing headers.
      *
      * @return $this
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException For invalid header names or values.
      */
     public function withHeaders(array $headers, bool $append = false): self
     {
@@ -264,9 +278,9 @@ class Context
      * While header names are not case-sensitive, getHeaders() will preserve the
      * exact case in which headers were originally specified.
      *
-     * @return string[][] Returns an associative array of the message's headers. Each
-     *                    key MUST be a header name, and each value MUST be an array
-     *                    of strings for that header.
+     * @return string[][] Returns an associative array of the message's headers.
+     *                    Each key MUST be a header name, and each value MUST be
+     *                    an array of strings for that header.
      */
     public function getHeaders(): array
     {
@@ -274,17 +288,18 @@ class Context
     }
 
     /**
-     * If `append` is `TRUE`, the provided value will replace the specified header if
-     * it already exists. Otherwise, existing values for the specified header will be
-     * maintained. The new value(s) will be appended to the existing list. If the
-     * header did not exist previously, it will be added.
+     * If `append` is `TRUE`, the provided value will replace the specified
+     * header if it already exists. Otherwise, existing values for the specified
+     * header will be maintained. The new value(s) will be appended to the
+     * existing list. If the header did not exist previously, it will be added.
      *
      * While header names are case-insensitive, the casing of the header will
      * be preserved by this function, and returned from getHeaders().
      *
      * @param string          $name   Case-insensitive name of the header
      * @param string|string[] $value  Header value
-     * @param bool            $append Whether to append values to pre-existing headers
+     * @param bool            $append Whether to append values to pre-existing
+     *                                headers
      *
      * @return $this
      * @throws InvalidArgumentException For invalid header names or values.
@@ -326,9 +341,9 @@ class Context
      *
      * @param string $name Case-insensitive header field name.
      *
-     * @return string[] An array of string values as provided for the given header.
-     *                  If the header does not appear in the message, this method
-     *                  MUST return an empty array.
+     * @return string[] An array of string values as provided for the given
+     *                  header. If the header does not appear in the message,
+     *                  this method MUST return an empty array.
      */
     public function getHeader(string $name): array
     {
@@ -338,12 +353,13 @@ class Context
     /**
      * Retrieves a comma-separated string of the values for a single header.
      *
-     * This method returns all of the header values of the given case-insensitive
-     * header name as a string concatenated together using a comma.
+     * This method returns all of the header values of the given
+     * case-insensitive header name as a string concatenated together using
+     * a comma.
      *
      * NOTE: Not all header values may be appropriately represented using comma
-     * concatenation. For such headers, use getHeader() instead and supply your own
-     * delimiter when concatenating.
+     * concatenation. For such headers, use getHeader() instead and supply your
+     * own delimiter when concatenating.
      *
      * If the header does not appear in the message, this method MUST return an
      * empty string.
@@ -351,8 +367,9 @@ class Context
      * @param string $name Case-insensitive header field name.
      *
      * @return string A string of values as provided for the given header
-     *                concatenated together using a comma. If the header does not
-     *                appear in the message, this method MUST return an empty string.
+     *                concatenated together using a comma. If the header does
+     *                not appear in the message, this method MUST return an
+     *                empty string.
      */
     public function getHeaderLine(string $name): string
     {
@@ -360,8 +377,9 @@ class Context
     }
 
     /**
-     * Shorthand method to set the Authorization header. While its technically rather
-     * "withAuthentication", I've decided to go with the way the header is named.
+     * Shorthand method to set the Authorization header. While its technically
+     * rather "withAuthentication", I've decided to go with the way the header
+     * is named.
      *
      * @param string $type
      * @param string $credentials
@@ -418,8 +436,8 @@ class Context
     }
 
     /**
-     * Shorthand method to set the Content-Type header. The content type also affects
-     * body serialization.
+     * Shorthand method to set the Content-Type header. The content type also
+     * affects body serialization.
      *
      * @param string $contentType
      *
@@ -428,7 +446,10 @@ class Context
      */
     public function withContentType(string $contentType): self
     {
-        return $this->withHeader(Header::CONTENT_TYPE, $contentType);
+        return $this->withHeader(
+            Header::CONTENT_TYPE,
+            $contentType
+        );
     }
 
     /**
@@ -556,9 +577,8 @@ class Context
         /** @var mixed $body */
         $body = $this->getBody();
 
-        // If we have a stream body already, we can simply pass that
-        // to the request directly. The user must have serialized it
-        // manually already.
+        // If we have a stream body already, we can simply pass that to the
+        // request directly. The user must have serialized it manually already.
         if ($body instanceof StreamInterface) {
             $request = $this
                 ->getRequest()
@@ -573,18 +593,17 @@ class Context
         // type from the current request instance.
         $contentType = $this->getContentType(true);
         $supportedMediaTypes = $this->client->getBodySerializers();
-        $serializerClass     = $supportedMediaTypes[$contentType]
-                               ?? PlainTextSerializer::class;
+        $serializerClass = $supportedMediaTypes[$contentType]
+                           ?? PlainTextSerializer::class;
 
-        // Create an instance of the serializer. I'm not quite happy
-        // with this yet; I have a feeling we should already have an
-        // instance available here, but I'm not quite sure how to go
-        // about that.
+        // Create an instance of the serializer. I'm not quite happy with this
+        // yet; I have a feeling we should already have an instance available
+        // here, but I'm not quite sure how to go about that.
         $serializer = new $serializerClass();
 
-        // Let the serializer apply the body to the request. Passing
-        // the request makes it possible to alter headers, depending
-        // on the serialization method (eg. multipart).
+        // Let the serializer apply the body to the request. Passing the request
+        // makes it possible to alter headers, depending on the serialization
+        // method (eg. multipart).
         $request = $serializer->applyBody(
             $this->request,
             $body
@@ -599,7 +618,9 @@ class Context
     /**
      * Encodes an associative array of query parameters into a query string
      *
-     * @param array<array-key, mixed> $queryParameters Query parameters as a dictionary
+     * @param mixed[] $queryParameters Query parameters as a dictionary
+     *
+     * @psalm-param array<array-key, scalar> $queryParameters
      *
      * @return string Query string
      */
@@ -613,11 +634,12 @@ class Context
      *
      * @param string $queryString Query string
      *
-     * @return array<array-key, string> Query parameters as a
-     *                                  dictionary
+     * @return string[] Query parameters as a dictionary
      *
-     * @psalm-suppress MixedReturnTypeCoercion Because psalm is wrong here. parse_str
-     *                                         can only infer scalar types.
+     * @psalm-return   array<array-key, string>
+     * @psalm-suppress MixedReturnTypeCoercion Because psalm is wrong here.
+     *                                         `parse_str` can only infer scalar
+     *                                         types anyway.
      */
     private function decodeQueryParameters(string $queryString): array
     {

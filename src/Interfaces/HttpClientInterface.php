@@ -16,9 +16,8 @@ use Radiergummi\Wander\Exceptions\WanderException;
 interface HttpClientInterface
 {
     /**
-     * Retrieves the dictionary of supported media types.
-     * This MUST return an array that maps media types to
-     * fully-qualified body class paths.
+     * Retrieves the dictionary of supported media types. This MUST return an
+     * array that maps media types to fully-qualified serializer class paths.
      *
      * @return array<string, class-string<SerializerInterface>>
      */
