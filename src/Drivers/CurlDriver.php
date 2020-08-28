@@ -379,7 +379,7 @@ class CurlDriver extends AbstractDriver implements SupportsTimeoutsInterface,
      * @return int
      * @throws UnexpectedValueException
      */
-    private function resolveProtocolVersion(string $protocolVersion): int
+    final protected function resolveProtocolVersion(string $protocolVersion): int
     {
         switch ($protocolVersion) {
             case '1.0':
