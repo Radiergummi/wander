@@ -285,7 +285,7 @@ class CurlDriver extends AbstractDriver
             // DNS resolution problems can indicate several specific issues, so
             // they have their own exception class
             case CURLE_COULDNT_RESOLVE_HOST:
-                throw new UnresolvableHostException($request->getUri());
+                throw new UnresolvableHostException($request);
 
             // This group is for all connection errors, happening before we even
             // receive an HTTP response from the server.

@@ -6,10 +6,8 @@ use Psr\Http\Client\RequestExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Throwable;
 
-class SslCertificateException extends WanderException implements RequestExceptionInterface
+class SslCertificateException extends ConnectionException
 {
-    protected RequestInterface $request;
-
     public function __construct(
         RequestInterface $request,
         string $message = '',
@@ -19,17 +17,10 @@ class SslCertificateException extends WanderException implements RequestExceptio
         $this->request = $request;
 
         parent::__construct(
+            $request,
             "Failed to establish secure connection: {$message}",
             $code,
             $previous
         );
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getRequest(): RequestInterface
-    {
-        return $this->request;
     }
 }

@@ -186,7 +186,7 @@ class StreamDriver extends AbstractDriver
 
         // If we don't have a record, bail out
         if ($records === false || ! isset($records[0]['ip'])) {
-            throw new UnresolvableHostException($uri);
+            throw new UnresolvableHostException($request);
         }
 
         return $uri->withHost((string)$records[0]['ip']);

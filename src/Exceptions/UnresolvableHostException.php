@@ -3,19 +3,21 @@
 namespace Radiergummi\Wander\Exceptions;
 
 use Psr\Http\Client\NetworkExceptionInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\UriInterface;
 use Throwable;
 
-class UnresolvableHostException extends WanderException
+class UnresolvableHostException extends DriverException
 {
     public function __construct(
-        UriInterface $uri,
+        RequestInterface $request,
         Throwable $previous = null
     ) {
-        $hostname = $uri->getHost();
+        $hostname = $request->getUri()->getHost();
 
         parent::__construct(
-            "Could not resolve host {$hostname}",
+            $request,
+            "Could not resolve host '{$hostname}'",
             0,
             $previous
         );
