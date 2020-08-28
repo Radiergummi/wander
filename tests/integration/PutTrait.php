@@ -1,5 +1,9 @@
 <?php
-/** @noinspection PhpUnhandledExceptionInspection */
+/**
+ * @noinspection PhpUnused
+ * @noinspection UnknownInspectionInspection
+ * @noinspection PhpUnhandledExceptionInspection
+ */
 
 declare(strict_types=1);
 
@@ -11,24 +15,24 @@ use Psr\Http\Message\UriInterface;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
 
-trait PostTrait
+trait PutTrait
 {
-    public function testPostRequest(): void
+    public function testPutRequest(): void
     {
         $client = $this->getClient();
         $uri = $this->getTestServerUri()->withPath('/loopback');
-        $request = $this->createRequest(Method::POST, $uri);
+        $request = $this->createRequest(Method::PUT, $uri);
         $response = $client->request($request);
 
         $this->assertStatusCodeOk($response);
     }
 
-    public function testPostRequestWithBody(): void
+    public function testPutRequestWithBody(): void
     {
         $client = $this->getClient();
         $uri = $this->getTestServerUri()->withPath('/body');
         $request = $this
-            ->createRequest(Method::POST, $uri)
+            ->createRequest(Method::PUT, $uri)
             ->withBody(Stream::create('test'));
         $response = $client->request($request);
 

@@ -11,6 +11,8 @@ class StreamTest extends AbstractRequestTest
 {
     use GetTrait;
     use PostTrait;
+    use PutTrait;
+    use PatchTrait;
     use ErrorHandlingTrait;
 
     protected function getDriver(): DriverInterface
