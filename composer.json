@@ -46,6 +46,7 @@
             "./scripts/fetch_phpdoc.sh"
         ],
         "test": "./vendor/bin/phpunit -c phpunit.xml",
-        "static-analysis": "./vendor/bin/psalm --output-format=compact --no-progress --threads=$(nproc)"
+        "static-analysis-ci": "./vendor/bin/psalm --output-format=compact --no-progress --threads=$(nproc)",
+        "static-analysis": "./vendor/bin/psalm --no-progress --threads=$(nproc)"
     }
 }

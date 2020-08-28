@@ -6,5 +6,5 @@ php:
     #  - '8.0'
 install: composer install --no-progress --no-interaction --optimize-autoloader --ignore-platform-reqs
 script:
-    - composer static-analysis
+    - composer static-analysis-ci
     - composer test
