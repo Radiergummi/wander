@@ -41,16 +41,7 @@ class StreamDriver extends AbstractDriver
      */
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
-        // Replace the hostname with an IP address or bail
-        $uri = $this->resolveHostname($request);
-        $url = (string)$uri;
-
-        // As we resolved the hostname to an IP address, we'll still want to
-        // keep the original hostname in the Host header
-        $request = $request->withHeader(
-            Header::HOST,
-            $request->getUri()->getHost()
-        );
+        $url = (string)$request->getUri();
 
         if ( ! filter_var($url, FILTER_VALIDATE_URL)) {
             throw new DriverException(
@@ -58,6 +49,16 @@ class StreamDriver extends AbstractDriver
                 "URL '{$url}' is not a valid URL"
             );
         }
+
+        // Replace the hostname with an IP address or bail
+        $url = (string)$this->resolveHostname($request);
+
+        // As we resolved the hostname to an IP address, we'll still want to
+        // keep the original hostname in the Host header
+        $request = $request->withHeader(
+            Header::HOST,
+            $request->getUri()->getHost()
+        );
 
         $options = [
             'ignore_errors'    => true,
