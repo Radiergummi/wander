@@ -9,11 +9,15 @@ use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Radiergummi\Wander\Drivers\Features\RedirectsTrait;
+use Radiergummi\Wander\Drivers\Features\TimeoutTrait;
 use Radiergummi\Wander\Exceptions\DriverException;
 use Radiergummi\Wander\Exceptions\UnresolvableHostException;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
+use Radiergummi\Wander\Interfaces\Features\SupportsRedirectsInterface;
+use Radiergummi\Wander\Interfaces\Features\SupportsTimeoutsInterface;
 use Radiergummi\Wander\Wander;
 use RuntimeException;
 
@@ -31,8 +35,12 @@ use const DNS_AAAA;
 use const FILTER_VALIDATE_IP;
 use const FILTER_VALIDATE_URL;
 
-class StreamDriver extends AbstractDriver
+class StreamDriver extends AbstractDriver implements SupportsTimeoutsInterface,
+                                                     SupportsRedirectsInterface
 {
+    use TimeoutTrait;
+    use RedirectsTrait;
+
     /**
      * @inheritDoc
      * @throws InvalidArgumentException
@@ -67,6 +75,18 @@ class StreamDriver extends AbstractDriver
             'user_agent'       => Wander::USER_AGENT,
             'follow_location'  => (int)$this->followRedirects,
         ];
+
+        // Apply the maximum redirects limit
+        if ($this->followRedirects && $this->maximumRedirects !== null) {
+            $options['max_redirects'] = $this->maximumRedirects;
+        }
+
+        // Set the timeout, if configured, and convert it to seconds, since PHP
+        // does not support higher precision. See also:
+        // https://www.php.net/manual/de/context.http.php#context.http.timeout
+        if ($this->timeout) {
+            $options['timeout'] = $this->timeout * 1000;
+        }
 
         // If we've got a body, append it to the request
         if (

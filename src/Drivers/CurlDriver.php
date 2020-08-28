@@ -9,6 +9,8 @@ use InvalidArgumentException;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Radiergummi\Wander\Drivers\Features\RedirectsTrait;
+use Radiergummi\Wander\Drivers\Features\TimeoutTrait;
 use Radiergummi\Wander\Exceptions\ClientException;
 use Radiergummi\Wander\Exceptions\ConnectionException;
 use Radiergummi\Wander\Exceptions\DriverException;
@@ -17,6 +19,8 @@ use Radiergummi\Wander\Exceptions\UnresolvableHostException;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
+use Radiergummi\Wander\Interfaces\Features\SupportsRedirectsInterface;
+use Radiergummi\Wander\Interfaces\Features\SupportsTimeoutsInterface;
 use RuntimeException;
 use UnexpectedValueException;
 
@@ -85,8 +89,12 @@ use const FILTER_VALIDATE_URL;
  * @author  Moritz Friedrich <m@9dev.de>
  * @license MIT
  */
-class CurlDriver extends AbstractDriver
+class CurlDriver extends AbstractDriver implements SupportsTimeoutsInterface,
+                                                   SupportsRedirectsInterface
 {
+    use TimeoutTrait;
+    use RedirectsTrait;
+
     private ?array $defaultOptions;
 
     /**
@@ -185,9 +193,20 @@ class CurlDriver extends AbstractDriver
                 $options[CURLOPT_CUSTOMREQUEST] = $request->getMethod();
         }
 
-        // TODO: Set as default if no timeouts provided
-        // $options[CURLOPT_TIMEOUT] = self::CURL_TIMEOUT;
-        // $options[CURLOPT_CONNECTTIMEOUT] = self::CURL_CONNECT_TIMEOUT;
+        // TODO: Should this really override a curl option configured using the
+        //       default curl options?
+        if ($this->timeout) {
+            $options[CURLOPT_TIMEOUT_MS] = $this->timeout;
+        }
+
+        if ($this->followRedirects) {
+            $options[CURLOPT_FOLLOWLOCATION] = $this->followRedirects;
+
+            // Apply the maximum redirects limit
+            if ($this->maximumRedirects !== null) {
+                $options[CURLOPT_MAXREDIRS] = $this->maximumRedirects;
+            }
+        }
 
         // Set all request headers
         $options[CURLOPT_HTTPHEADER] = self::marshalHeaders(
