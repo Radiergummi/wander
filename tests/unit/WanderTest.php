@@ -10,7 +10,7 @@ use Nyholm\Psr7\Response;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
-use Radiergummi\Wander\Context;
+use Radiergummi\Wander\Context\RequestContext;
 use Radiergummi\Wander\Exceptions\ResponseErrorException;
 use Radiergummi\Wander\Interfaces\DriverInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
@@ -73,7 +73,7 @@ class WanderTest extends TestCase
         $wander = new Wander();
         $context = $wander->get('https://example.com');
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesHeadContexts(): void
@@ -81,7 +81,7 @@ class WanderTest extends TestCase
         $wander = new Wander();
         $context = $wander->head('https://example.com');
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesDeleteContexts(): void
@@ -89,7 +89,7 @@ class WanderTest extends TestCase
         $wander = new Wander();
         $context = $wander->delete('https://example.com');
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesPostContexts(): void
@@ -97,7 +97,7 @@ class WanderTest extends TestCase
         $wander = new Wander();
         $context = $wander->post('https://example.com');
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesPostContextsWithBody(): void
@@ -110,7 +110,7 @@ class WanderTest extends TestCase
             ]
         );
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
         $this->assertTrue($context->hasBody());
     }
 
@@ -119,7 +119,7 @@ class WanderTest extends TestCase
         $wander = new Wander();
         $context = $wander->put('https://example.com');
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesPutContextsWithBody(): void
@@ -132,7 +132,7 @@ class WanderTest extends TestCase
             ]
         );
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
         $this->assertTrue($context->hasBody());
     }
 
@@ -141,7 +141,7 @@ class WanderTest extends TestCase
         $wander = new Wander();
         $context = $wander->patch('https://example.com');
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesPatchContextsWithBody(): void
@@ -154,7 +154,7 @@ class WanderTest extends TestCase
             ]
         );
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
         $this->assertTrue($context->hasBody());
     }
 
@@ -163,7 +163,7 @@ class WanderTest extends TestCase
         $wander = new Wander();
         $context = $wander->options('https://example.com');
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesCustomContexts(): void
@@ -174,7 +174,7 @@ class WanderTest extends TestCase
             'https://example.com'
         );
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testCreatesCustomContextsFromRequestInstances(): void
@@ -187,7 +187,7 @@ class WanderTest extends TestCase
         );
         $context = $wander->createContextFromRequest($request);
 
-        $this->assertInstanceOf(Context::class, $context);
+        $this->assertInstanceOf(RequestContext::class, $context);
     }
 
     public function testExecutesRequests(): void

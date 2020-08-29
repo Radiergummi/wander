@@ -9,9 +9,10 @@ use Nyholm\Psr7\Request;
 use Nyholm\Psr7\Uri;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
-use Radiergummi\Wander\Context;
+use Radiergummi\Wander\Context\RequestContext;
 use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
+use Radiergummi\Wander\SerializerRegistry;
 use Radiergummi\Wander\Serializers\JsonSerializer;
 
 use function base64_encode;
@@ -22,11 +23,11 @@ class ContextTest extends TestCase
 
     private RequestInterface $request;
 
-    private Context $context;
+    private RequestContext $context;
 
     public function testCreatesInstances(): void
     {
-        $this->assertInstanceOf(Context::class, $this->context);
+        $this->assertInstanceOf(RequestContext::class, $this->context);
     }
 
     public function testRetrievesRequestInstance(): void
@@ -560,12 +561,17 @@ class ContextTest extends TestCase
         $this->client = $this->createMock(
             HttpClientInterface::class
         );
-        $this->client->method('getBodySerializers')->willReturn([
-            MediaType::APPLICATION_JSON => JsonSerializer::class,
-        ]);
+        $serializers = new SerializerRegistry();
+        $serializers->register(
+            MediaType::APPLICATION_JSON,
+            new JsonSerializer()
+        );
+        $this->client
+            ->method('getSerializerRegistry')
+            ->willReturn($serializers);
 
         $this->request = new Request('GET', 'https://example.com');
-        $this->context = new Context(
+        $this->context = new RequestContext(
             $this->client,
             $this->request
         );

@@ -7,7 +7,9 @@ namespace Radiergummi\Wander\Serializers;
 use InvalidArgumentException;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Radiergummi\Wander\Interfaces\SerializerInterface;
+use RuntimeException;
 
 class PlainTextSerializer implements SerializerInterface
 {
@@ -20,7 +22,7 @@ class PlainTextSerializer implements SerializerInterface
      * @return RequestInterface
      * @throws InvalidArgumentException
      */
-    public function applyBody(
+    public function apply(
         RequestInterface $request,
         $body
     ): RequestInterface {
@@ -28,5 +30,14 @@ class PlainTextSerializer implements SerializerInterface
         $stream = Stream::create($encoded);
 
         return $request->withBody($stream);
+    }
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function extract(ResponseInterface $response)
+    {
+        return $response->getBody()->getContents();
     }
 }

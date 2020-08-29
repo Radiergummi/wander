@@ -18,13 +18,14 @@ to be wrong for your use case.
    Wander relies on PSR-17 factories, PSR-18 client drivers and PSR-7 requests/responses. Use our implementations of choice
    ([nyholm/psr7](https://github.com/nyholm/psr7)) or bring your own.
  - **Pluggable serialization**
-   Request bodies are serialized depending on the content type, transparently and automatically. Use a format we
-   don't know yet? Use your own (and submit a PR!).
+   Request and response bodies are serialized depending on the content type, transparently and automatically. Use a format we don't know yet? Add your own 
+   (and submit a PR!).
  - **Compatible with other solutions**
-   As drivers are, essentially, PSR-18 clients, you can swap in any other client library and make it work out of the box. This provides for a smooth migration path.
+   As drivers are, essentially, PSR-18 clients, you can swap in any other client library and make it work out of the box. This provides for a smooth migration
+   path.
  - **Extensive exceptions**
-   Wander throws several exceptions, all of which follow a clear inheritance structure. This makes it
-   exceptionally easy to handle errors as coarsely or fine-grained as necessary.
+   Wander throws several exceptions, all of which follow a clear inheritance structure. This makes it exceptionally easy to handle errors as coarsely or
+   fine-grained as necessary.
 
 ```php
 $responseBody = (new Wander())
@@ -56,8 +57,6 @@ The following section provides usage several, concrete examples. For a full refe
 ### Request shorthands
 Wander has several layers of shorthands built in, which make working with it as simple as possible. To perform a simple `GET` request, the following is enough:
 ```php
-use Radiergummi\Wander\Wander;
-
 $client = new Wander();
 $response = $client
     ->get('https://example.com')
@@ -69,9 +68,6 @@ Wander has several shorthands for common HTTP methods on the `Wander` object (`G
 ### Creating request contexts
 A slightly longer version of the above example, using the `createContext` method the shorthands also use internally:
 ```php
-use Radiergummi\Wander\Http\Method;
-use Radiergummi\Wander\Wander;
-
 $client = new Wander();
 $response = $client
     ->createContext(Method::GET, 'https://example.com')
@@ -85,13 +81,46 @@ for your own. More on that below.
 ### Sending PSR-7 requests directly
 Wander also supports direct handling of request instances:
 ```php
-use Nyholm\Psr7\Request;
-use Radiergummi\Wander\Http\Method;
-use Radiergummi\Wander\Wander;
-
 $client = new Wander();
 $request = new Request(Method::GET, 'https://example.com');
 $response = $client->request($request);
+```
+
+### Sending arbitrary request bodies
+Wander accepts any kind of data as for the request body. It will be serialized just before dispatching the request, depending on the `Content-Type` header set 
+_at that time_. This means that you don't have to take care of body serialization.  
+If you set a PSR-7 `StreamInterface` instance as the body, however, Wander will not attempt to modify the stream and use it as-is.
+
+Sending a JSON request:
+```php
+$client = new Wander();
+$response = $client
+    ->post('https://example.com')
+    ->withBody([
+        'anything' => true
+    ])
+    ->asJson()
+    ->run();
+```
+
+Sending a raw stream:
+```php
+$client = new Wander();
+$response = $client
+    ->post('https://example.com')
+    ->withBody(Stream::create('/home/moritz/large.mp4'))
+    ->run();
+```
+
+### Retrieving parsed response bodies
+As request contexts wrap around request instances, there's also response contexts wrapping around [PSR-7 responses](https://www.php-fig.org/psr/psr-7/), 
+providing additional helpers, for example to get a parsed representation of the response body, if possible.
+```php
+$client = new Wander();
+$response = $client
+    ->get('https://example.com')
+    ->run()
+    ->getParsedBody();
 ```
 
 ### Exception handling
@@ -226,16 +255,14 @@ $client = new Wander($driver);
 > All default drivers implement this interface, though, so you'll only need to check this if you use another implementation.
 
 ### Adding a body serializer
-Wander supports so-called serializers: Classes that take a request and some data and apply it to the request. This approach moves serialization logic into the 
-client and makes it completely transparent, as the context applies the serialization just before passing the request to the driver. Out of the box, Wander ships
-with serializers for plain text, JSON, XML, form data, and multipart bodies. If you would like to use another serialization format, or modify one of the 
-existing serializers, you can add it to the client instance like so:
+Wander supports transparent body serialization for requests and responses, by passing the data through a serializer class. Out of the box, Wander ships
+with serializers for plain text, JSON, XML, form data, and multipart bodies. Serializers follow a well-defined interface, so you can easily add you own 
+serializer for any data format:
 ```php
 $client = new Wander();
-$client->addBodySerializer('your/media-type', YourSerializer::class);
+$client->addSerializer('your/media-type', new CustomSerializer());
 ```
-
-For any request with the content type `your/media-type`, an instance of `YourSerializer` will be created and used to apply the body to the request.
+The serializer will be invoked for any requests and responses with this media type set as its `Content-Type` header.
 
 ### Using a custom driver
 Drivers are what actually handles dispatching requests and processing responses. They have one, simple responsibility: Transform a request instance into a 
@@ -529,10 +556,10 @@ By passing a Stream instance, this process will be skipped in the body will be s
 Retrieves the current body data.
 
 #### `hasBody`
-Checks whether the context has any body data.
+Checks whether the context has any data in its body.
 
 #### `run`
-Dispatches the request to the client instance.
+Dispatches the request to the client instance and creates a response context
 
 Contributing
 ------------

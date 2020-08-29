@@ -7,11 +7,15 @@ namespace Radiergummi\Wander\Serializers;
 use InvalidArgumentException;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use Radiergummi\Wander\Interfaces\SerializerInterface;
+
+use RuntimeException;
 
 use function http_build_query;
 use function is_array;
 use function is_object;
+use function parse_str;
 
 class UrlEncodedSerializer implements SerializerInterface
 {
@@ -24,7 +28,7 @@ class UrlEncodedSerializer implements SerializerInterface
      * @return RequestInterface
      * @throws InvalidArgumentException
      */
-    public function applyBody(
+    public function apply(
         RequestInterface $request,
         $body
     ): RequestInterface {
@@ -38,5 +42,22 @@ class UrlEncodedSerializer implements SerializerInterface
         $stream = Stream::create($encoded);
 
         return $request->withBody($stream);
+    }
+
+    /**
+     * @inheritDoc
+     * @throws RuntimeException
+     */
+    public function extract(ResponseInterface $response)
+    {
+        $body = $response
+            ->getBody()
+            ->getContents();
+
+        $data = [];
+
+        parse_str($body, $data);
+
+        return $data;
     }
 }

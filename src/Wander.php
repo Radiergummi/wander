@@ -10,13 +10,16 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Radiergummi\Wander\Context\RequestContext;
 use Radiergummi\Wander\Drivers\StreamDriver;
 use Radiergummi\Wander\Exceptions\ResponseErrorException;
-use Radiergummi\Wander\Http\MediaType;
+use Radiergummi\Wander\Http\MediaType as Type;
 use Radiergummi\Wander\Http\Method;
 use Radiergummi\Wander\Http\Status;
 use Radiergummi\Wander\Interfaces\DriverInterface;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
+use Radiergummi\Wander\Interfaces\SerializerInterface;
+use Radiergummi\Wander\Interfaces\SerializerRegistryInterface;
 use Radiergummi\Wander\Serializers\JsonSerializer;
 use Radiergummi\Wander\Serializers\PlainTextSerializer;
 use Radiergummi\Wander\Serializers\UrlEncodedSerializer;
@@ -40,27 +43,32 @@ class Wander implements HttpClientInterface
 
     protected ResponseFactoryInterface $responseFactory;
 
-    /**
-     * Holds all body serializers
-     *
-     * @var array<string, class-string<Interfaces\SerializerInterface>>
-     */
-    protected array $bodySerializers = [
-        MediaType::APPLICATION_JSON                  => JsonSerializer::class,
-        MediaType::TEXT_PLAIN                        => PlainTextSerializer::class,
-        MediaType::APPLICATION_X_WWW_FORM_URLENCODED => UrlEncodedSerializer::class,
-    ];
+    protected SerializerRegistryInterface $serializerRegistry;
 
     public function __construct(
         ?DriverInterface $driver = null,
         ?RequestFactoryInterface $requestFactory = null,
         ?ResponseFactoryInterface $responseFactory = null
     ) {
-        $psr17Factory = new Psr17Factory();
+        $factory = new Psr17Factory();
 
-        $this->setRequestFactory($requestFactory ?? $psr17Factory);
-        $this->setResponseFactory($responseFactory ?? $psr17Factory);
+        $this->setRequestFactory($requestFactory ?? $factory);
+        $this->setResponseFactory($responseFactory ?? $factory);
         $this->setDriver($driver ?? new StreamDriver());
+
+        $this->serializerRegistry = new SerializerRegistry();
+        $this->serializerRegistry->register(
+            Type::APPLICATION_JSON,
+            new JsonSerializer()
+        );
+        $this->serializerRegistry->register(
+            Type::TEXT_PLAIN,
+            new PlainTextSerializer()
+        );
+        $this->serializerRegistry->register(
+            Type::APPLICATION_X_WWW_FORM_URLENCODED,
+            new UrlEncodedSerializer()
+        );
     }
 
     public function setDriver(DriverInterface $driver): void
@@ -76,8 +84,9 @@ class Wander implements HttpClientInterface
         return $this->driver;
     }
 
-    public function setRequestFactory(RequestFactoryInterface $requestFactory): void
-    {
+    public function setRequestFactory(
+        RequestFactoryInterface $requestFactory
+    ): void {
         $this->requestFactory = $requestFactory;
     }
 
@@ -86,8 +95,9 @@ class Wander implements HttpClientInterface
         return $this->requestFactory;
     }
 
-    public function setResponseFactory(ResponseFactoryInterface $responseFactory): void
-    {
+    public function setResponseFactory(
+        ResponseFactoryInterface $responseFactory
+    ): void {
         $this->responseFactory = $responseFactory;
     }
 
@@ -97,30 +107,29 @@ class Wander implements HttpClientInterface
     }
 
     /**
-     * Retrieves all supported media type serializers
-     *
-     * @return array<string, class-string<Interfaces\SerializerInterface>>
+     * @inheritDoc
      */
-    public function getBodySerializers(): array
+    public function getSerializerRegistry(): SerializerRegistryInterface
     {
-        return $this->bodySerializers;
+        return $this->serializerRegistry;
     }
 
     /**
      * Adds a new body serializer
      *
-     * @param string $mediaType
-     * @param string $serializer
-     *
-     * @psalm-param class-string<Interfaces\SerializerInterface> $serializer
+     * @param string              $mediaType
+     * @param SerializerInterface $serializer
      *
      * @return $this
      */
-    public function addBodySerializer(
+    public function addSerializer(
         string $mediaType,
-        string $serializer
+        SerializerInterface $serializer
     ): self {
-        $this->bodySerializers[$mediaType] = $serializer;
+        $this->serializerRegistry->register(
+            $mediaType,
+            $serializer
+        );
 
         return $this;
     }
@@ -130,9 +139,9 @@ class Wander implements HttpClientInterface
      *
      * @param UriInterface|string $uri
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function get($uri): Context
+    public function get($uri): RequestContext
     {
         return $this->createContext(Method::GET, $uri);
     }
@@ -142,9 +151,9 @@ class Wander implements HttpClientInterface
      *
      * @param UriInterface|string $uri
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function head($uri): Context
+    public function head($uri): RequestContext
     {
         return $this->createContext(Method::HEAD, $uri);
     }
@@ -154,9 +163,9 @@ class Wander implements HttpClientInterface
      *
      * @param UriInterface|string $uri
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function options($uri): Context
+    public function options($uri): RequestContext
     {
         return $this->createContext(Method::OPTIONS, $uri);
     }
@@ -166,9 +175,9 @@ class Wander implements HttpClientInterface
      *
      * @param UriInterface|string $uri
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function delete($uri): Context
+    public function delete($uri): RequestContext
     {
         return $this->createContext(Method::DELETE, $uri);
     }
@@ -179,9 +188,9 @@ class Wander implements HttpClientInterface
      * @param UriInterface|string $uri
      * @param mixed|null          $body
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function post($uri, $body = null): Context
+    public function post($uri, $body = null): RequestContext
     {
         $context = $this->createContext(Method::POST, $uri);
 
@@ -198,9 +207,9 @@ class Wander implements HttpClientInterface
      * @param UriInterface|string $uri
      * @param mixed|null          $body
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function put($uri, $body = null): Context
+    public function put($uri, $body = null): RequestContext
     {
         $context = $this->createContext(Method::PUT, $uri);
 
@@ -217,9 +226,9 @@ class Wander implements HttpClientInterface
      * @param UriInterface|string $uri
      * @param mixed|null          $body
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function patch($uri, $body = null): Context
+    public function patch($uri, $body = null): RequestContext
     {
         $context = $this->createContext(Method::PATCH, $uri);
 
@@ -236,11 +245,14 @@ class Wander implements HttpClientInterface
      * @param string              $method HTTP request method.
      * @param string|UriInterface $uri    Request URI as string or URI instance.
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function createContext(string $method, $uri): Context
+    public function createContext(string $method, $uri): RequestContext
     {
-        $request = $this->requestFactory->createRequest($method, $uri);
+        $request = $this->requestFactory->createRequest(
+            $method,
+            $uri
+        );
 
         return $this->createContextFromRequest($request);
     }
@@ -250,11 +262,12 @@ class Wander implements HttpClientInterface
      *
      * @param RequestInterface $request Request instance to create a context for
      *
-     * @return Context
+     * @return RequestContext
      */
-    public function createContextFromRequest(RequestInterface $request): Context
-    {
-        return new Context($this, $request);
+    public function createContextFromRequest(
+        RequestInterface $request
+    ): RequestContext {
+        return new RequestContext($this, $request);
     }
 
     /**
