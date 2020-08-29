@@ -15,7 +15,6 @@ use Radiergummi\Wander\Http\Authorization;
 use Radiergummi\Wander\Http\Header;
 use Radiergummi\Wander\Http\MediaType;
 use Radiergummi\Wander\Interfaces\HttpClientInterface;
-use Radiergummi\Wander\Interfaces\SerializerInterface;
 use Radiergummi\Wander\Serializers\PlainTextSerializer;
 
 use function base64_encode;
