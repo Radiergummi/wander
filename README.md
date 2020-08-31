@@ -1,4 +1,4 @@
-Wander ![Build Status](https://api.travis-ci.org/Radiergummi/wander.svg?branch=master)
+Wander ![Build Status](https://api.travis-ci.org/Radiergummi/wander.svg?branch=master) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ======
 > A modern, lightweight, fast and type-safe HTTP client for PHP 7.4
 
@@ -293,7 +293,6 @@ This reference shows all available methods.
 This section describes all methods of the HTTP client itself. When creating a new instance, you can pass several
 dependencies:
 
-**Signature:**
 ```php
 new Wander(
     DriverInterface $driver = null,
@@ -302,7 +301,6 @@ new Wander(
 )
 ```
 
-**Parameters:**
 | Parameter          | Type                       | Required | Description                                     |
 |:-------------------|:---------------------------|:---------|:------------------------------------------------|
 | `$driver`          | `DriverInterface`          | No       | Underlying HTTP client driver. Defaults to curl |
@@ -312,12 +310,10 @@ new Wander(
 #### `get`: Create Context Shorthand
 Creates a new request context for a `GET` request.
 
-**Signature:**
 ```php
 get(UriInterface|string $uri): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
@@ -325,12 +321,10 @@ get(UriInterface|string $uri): Context
 #### `post`: Create Context Shorthand
 Creates a new request context for a `POST` request.
 
-**Signature:**
 ```php
 post(UriInterface|string $uri, ?mixed $body = null): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
@@ -339,12 +333,10 @@ post(UriInterface|string $uri, ?mixed $body = null): Context
 #### `put`: Create Context Shorthand
 Creates a new request context for a `PUT` request.
 
-**Signature:**
 ```php
 put(UriInterface|string $uri, ?mixed $body = null): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
@@ -353,12 +345,10 @@ put(UriInterface|string $uri, ?mixed $body = null): Context
 #### `patch`: Create Context Shorthand
 Creates a new request context for a `PATCH` request.
 
-**Signature:**
 ```php
 patch(UriInterface|string $uri, ?mixed $body = null): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
@@ -367,12 +357,10 @@ patch(UriInterface|string $uri, ?mixed $body = null): Context
 #### `delete`: Create Context Shorthand
 Creates a new request context for a `DELETE` request.
 
-**Signature:**
 ```php
 delete(UriInterface|string $uri, ?mixed $body = null): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
@@ -380,12 +368,10 @@ delete(UriInterface|string $uri, ?mixed $body = null): Context
 #### `head`: Create Context Shorthand
 Creates a new request context for a `HEAD` request.
 
-**Signature:**
 ```php
 head(UriInterface|string $uri, ?mixed $body = null): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
@@ -393,12 +379,10 @@ head(UriInterface|string $uri, ?mixed $body = null): Context
 #### `options`: Create Context Shorthand
 Creates a new request context for a `OPTIONS` request.
 
-**Signature:**
 ```php
 options(UriInterface|string $uri, ?mixed $body = null): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$uri`    | `string` or `UriInterface` | Yes      | URI instance or string to create one from. |
@@ -406,12 +390,10 @@ options(UriInterface|string $uri, ?mixed $body = null): Context
 #### `createContext`
 Allows creation of a new request context for an arbitrary request method.
 
-**Signature:**
 ```php
 createContext(string $method, UriInterface|string $uri): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                |
 |:----------|:---------------------------|:---------|:-------------------------------------------|
 | `$method` | `string`                   | Yes      | Any request method, case sensitive.        |
@@ -420,12 +402,10 @@ createContext(string $method, UriInterface|string $uri): Context
 #### `createContextFromRequest`
 Allows creation of a new request context from an existing request instance.
 
-**Signature:**
 ```php
 createContextFromRequest(RequestInterface $request): Context
 ```
 
-**Parameters:**
 | Parameter | Type                       | Required | Description                                           |
 |:----------|:---------------------------|:---------|:------------------------------------------------------|
 | `$request` | `RequestInterface`        | Yes      | Existing request instance to create the context from. |
@@ -433,12 +413,10 @@ createContextFromRequest(RequestInterface $request): Context
 #### `request`
 Dispatches a request instance on the client instances driver and returns the response.
 
-**Signature:**
 ```php
 request(RequestInterface $request): ResponseInterface
 ```
 
-**Parameters:**
 | Parameter  | Type                      | Required | Description          |
 |:-----------|:--------------------------|:---------|:---------------------|
 | `$request` | `RequestInterface`        | Yes      | Request to dispatch. |
@@ -452,7 +430,6 @@ very easy to use and extend.
 Note that you should rely on the client creating contexts for you; using the constructor manually is
 discouraged.
 
-**Signature:**
 ```php
 new Context(
     HttpClientInterface $client,
@@ -460,7 +437,6 @@ new Context(
 )
 ```
 
-**Parameters:**
 | Parameter | Type                  | Required | Description                                        |
 |:----------|:----------------------|:---------|:---------------------------------------------------|
 | `$client` | `HttpClientInterface` | Yes      | HTTP client instance to dispatch the request with. |
