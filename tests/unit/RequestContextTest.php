@@ -17,7 +17,7 @@ use Radiergummi\Wander\Serializers\JsonSerializer;
 
 use function base64_encode;
 
-class ContextTest extends TestCase
+class RequestContextTest extends TestCase
 {
     private HttpClientInterface $client;
 
