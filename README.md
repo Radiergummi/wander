@@ -1,4 +1,4 @@
-Wander ![Build Status](https://api.travis-ci.org/Radiergummi/wander.svg?branch=master) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+Wander ![Build Status](https://api.travis-ci.org/Radiergummi/wander.svg?branch=master) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) ![Packagist Version (including pre-releases)](https://img.shields.io/packagist/v/radiergummi/wander?include_prereleases&label=latest)
 ======
 > A modern, lightweight, fast and type-safe HTTP client for PHP 7.4
 
